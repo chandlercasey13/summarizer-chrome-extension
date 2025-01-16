@@ -1,4 +1,3 @@
-chrome.runtime.onInstalled.addListener(() => {
-    console.log("Extension installed!");
-  });
-  
+chrome.action.onClicked.addListener(function(tab){
+  chrome.tabs.sendMessage(tab.id as number,"toggle");
+});

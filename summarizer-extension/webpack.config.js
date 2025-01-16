@@ -4,7 +4,9 @@ import CopyPlugin from 'copy-webpack-plugin';
 
 export default {
     entry: {
+        background: "./src/background/background.ts",
         index: "./src/index.tsx",
+        contentScript: "./src/contentScript.ts",
     },
     mode: "production",
     module: {
