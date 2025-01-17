@@ -2,7 +2,7 @@
 export default {
     darkMode: ["class"],
     content: [
-    "./src/**/*.{html,js,ts,tsx}", // Include your source files
+    "./src/**/*.{html,js,ts,tsx}", 
     "./public/**/*.html",
   ],
   theme: {
