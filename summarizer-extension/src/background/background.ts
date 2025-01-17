@@ -32,8 +32,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
             const chunkText = decoder.decode(value, { stream: true });
             fullText += chunkText;
-
-            console.log("Received chunk:", chunkText);
+            chrome.runtime.sendMessage({
+              type: "STREAM_CHUNK",
+              data: chunkText,
+            });
+           
             return readStream();
           });
         };

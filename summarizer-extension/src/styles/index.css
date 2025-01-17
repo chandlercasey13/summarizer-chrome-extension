@@ -12,10 +12,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 400px;
+  min-width: 100%;
   min-height: 100vh;
+ 
+  
   border-radius: 20px;
  background-color: black;
+ border-color: transparent;
  overflow: hidden;
 }
 

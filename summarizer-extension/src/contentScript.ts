@@ -4,9 +4,12 @@ chrome.runtime.onMessage.addListener(function(msg, sender){
     }
 });
 
-const iframe = document.createElement('iframe'); 
+const iframe = document.createElement('iframe');
+const iframewindow = document.querySelector("iframe")!.contentDocument?.body;
 
-iframe.style.height = "100%";
+console.log(iframewindow)
+
+iframe.style.height = "50vh"
 iframe.style.width = "0px";
 iframe.style.position = "fixed";
 iframe.style.top = "0px";
@@ -14,7 +17,9 @@ iframe.style.right = "0px";
 iframe.style.zIndex = "9000000000000000000";
 iframe.style.transition = "width 0.5s ease";
 iframe.src = chrome.runtime.getURL("js/index.html")
-iframe.style.overflow = "hidden";
+iframe.style.overflow = "visible";
+
+iframe.style.borderColor= "tranparent";
 document.body.appendChild(iframe);
 
 function toggle(){
