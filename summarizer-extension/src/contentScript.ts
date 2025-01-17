@@ -37,9 +37,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       
       chrome.runtime.sendMessage(
         { type: "DOM_CONTENT", payload: domContent },
-        (response) => {
-          console.log("Response from background script:", response);
-        }
+        
       );
   
      

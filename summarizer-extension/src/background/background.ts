@@ -1,7 +1,6 @@
-chrome.action.onClicked.addListener(function(tab){
-  chrome.tabs.sendMessage(tab.id as number,"toggle");
+chrome.action.onClicked.addListener(function (tab) {
+  chrome.tabs.sendMessage(tab.id as number, "toggle");
 });
-
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "DOM_CONTENT") {
@@ -9,23 +8,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     console.log("Received DOM content from content script:", domContent);
 
-    //  
-    // fetch("https://your-backend-url.com/process-dom", {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({ domContent }),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     console.log("Backend response:", data);
-    //     sendResponse({ status: "Success", data });
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error sending DOM to backend:", error);
-    //     sendResponse({ status: "Error", error: error.message });
-    //   });
+    fetch("http://localhost:3000", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domContent }),
+    })
+      .then((response) => {
+        if (!response.body) {
+          throw new Error("ReadableStream is not supported.");
+        }
 
-   
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let fullText = "";
+
+        const readStream: any = () => {
+          return reader.read().then(({ done, value }) => {
+            if (done) {
+              console.log("Streaming complete:", fullText);
+              sendResponse({ status: "Success", data: fullText });
+              return;
+            }
+
+            const chunkText = decoder.decode(value, { stream: true });
+            fullText += chunkText;
+
+            console.log("Received chunk:", chunkText);
+            return readStream();
+          });
+        };
+
+        return readStream();
+      })
+      .catch((error) => {
+        console.error("Error sending DOM to backend:", error);
+        sendResponse({ status: "Error", error: error.message });
+      });
+
     return true;
   }
 });
