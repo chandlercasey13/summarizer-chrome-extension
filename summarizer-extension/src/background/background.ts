@@ -1,12 +1,13 @@
 chrome.action.onClicked.addListener(function (tab) {
   chrome.tabs.sendMessage(tab.id as number, "toggle");
+  
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "DOM_CONTENT") {
     const domContent = message.payload;
 
-    console.log("Received DOM content from content script:", domContent);
+   // console.log("Received DOM content from content script:", domContent);
 
     fetch("http://localhost:3000", {
       method: "POST",
@@ -25,7 +26,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const readStream: any = () => {
           return reader.read().then(({ done, value }) => {
             if (done) {
-              console.log("Streaming complete:", fullText);
+             // console.log("Streaming complete:", fullText);
               sendResponse({ status: "Success", data: fullText });
               return;
             }

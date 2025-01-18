@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
 lineWobble.register();
@@ -9,25 +9,37 @@ import TypingAnimation from "./components/ui/typing-animation";
 import { motion } from "motion/react"
 import { MonitorStopIcon } from "lucide-react";
 import  DiscreteSlider from "./components/ui/slider"
-
+import { ShimmerButton } from "./components/ui/shimmer-button";
 
 
 function App() {
   const [output, setOutput] = useState("");
   const [logoMoved, setLogoMoved] =useState(false)
+
+
+
   const handleButtonClick = async () => {
     setLogoMoved(true)
+
+
+
+
+
+
+
+
     if (!chrome?.tabs?.query) {
       console.error("Chrome tabs API is not available");
       return;
     }
-
+   
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
     });
 
     if (tab?.id) {
+     
       chrome.tabs.sendMessage(
         tab.id,
         { type: "SEND_DOM", payload: "Request to fetch DOM" },
@@ -35,7 +47,7 @@ function App() {
           if (chrome.runtime.lastError) {
             console.error("Error:", chrome.runtime.lastError.message);
           } else {
-            console.log("Response from content script:", response);
+           // console.log("Response from content script:", response);
           }
         }
       );
@@ -44,20 +56,33 @@ function App() {
     }
   };
 
-  chrome.runtime.onMessage.addListener((message) => {
-    if (message.type === "STREAM_CHUNK") {
-      setOutput((prevOutput) => {
-        if (prevOutput.includes(message.data)) {
-          return prevOutput;
-        }
-        return prevOutput + message.data;
-      });
-    } else if (message.type === "STREAM_COMPLETE") {
-      console.log("Streaming complete:", message.data);
-    } else if (message.type === "ERROR") {
-      console.error("Error received from background:", message.error);
-    }
-  });
+  useEffect(() => {
+    const messageListener = (message: any) => {
+      if (message.type === "CHANGE_LOGOMOVED" && !logoMoved) {
+        console.log("call");
+        setLogoMoved(true);
+      }
+  
+      if (message.type === "STREAM_CHUNK") {
+        setOutput((prevOutput) => {
+          if (prevOutput.includes(message.data)) {
+            return prevOutput;
+          }
+          return prevOutput + message.data;
+        });
+      } else if (message.type === "STREAM_COMPLETE") {
+        // console.log("Streaming complete:", message.data);
+      } else if (message.type === "ERROR") {
+        console.error("Error received from background:", message.error);
+      }
+    };
+  
+    chrome.runtime.onMessage.addListener(messageListener);
+  
+    return () => {
+      chrome.runtime.onMessage.removeListener(messageListener);
+    };
+  }, []);
 
   return (
     <>
@@ -77,9 +102,9 @@ function App() {
  // Move the div horizontally when isMoved is true
 }}
 transition={{
-  delay:0,
-  duration: 1, // Animation duration
-  ease: "easeInOut", // Easing function
+  delay:1,
+  duration: 1, 
+  ease: "easeInOut", 
 }}>
       <motion.div  className="absolute top-0 h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
        style={{
@@ -93,12 +118,12 @@ transition={{
          left: logoMoved ? -120 : 0,
          //top: logoMoved? 0: 10,
           // y: logoMoved ? -100 : 0, 
-         // Move the div horizontally when isMoved is true
+         
         }}
         transition={{
-          delay:0,
-          duration: 1, // Animation duration
-          ease: "easeInOut", // Easing function
+          delay:1,
+          duration: 1,
+          ease: "easeInOut", 
         }}
       
       >
@@ -106,14 +131,14 @@ transition={{
           
           initial={false}
           animate={{
-            marginBottom: logoMoved? "0rem" : "1.25rem",
+            marginBottom: logoMoved? "0rem" : ".5rem",
 width: logoMoved? '6rem': '10rem',
-height: logoMoved? '4.5rem': '4rem',
+height: logoMoved? '4.5rem': '6rem',
           }}
           transition={{
-            delay:0,
-            duration: 1, // Animation duration
-            ease: "easeInOut", // Easing function
+            delay:1,
+            duration: 1,
+            ease: "easeInOut", 
           }}>
           <IoCrop className="w-full h-full" color="white" />
 
@@ -121,12 +146,14 @@ height: logoMoved? '4.5rem': '4rem',
 
 
         </motion.div>
-        {!logoMoved && (<button
-          className="bg-white px-2  rounded-xl font-bold font-md  mb-3 pointer-events-auto z-50"
+        {/* {!logoMoved && (<ShimmerButton
+          className="bg-white px-2 py-1  rounded-xl font-bold font-md  mb-3 pointer-events-auto z-50"
           onClick={handleButtonClick}
+         
+          shimmerSize=".05em"
         >
           Summarize
-        </button>)}
+        </ShimmerButton>)} */}
         
       
 
@@ -143,14 +170,14 @@ height: logoMoved? '4.5rem': '4rem',
 
   transition={{
     delay:0.5,
-    duration: 1, // Animation duration
-    ease: "easeInOut", // Easing function
+    duration: 1, 
+    ease: "easeInOut", 
   }}
 
 
   
   >
-  <DiscreteSlider />
+  {/* <DiscreteSlider /> */}
   </motion.div>
   )}      
 
@@ -168,12 +195,12 @@ animate={{
   height : logoMoved ? "80vh" : "0",
   // x: logoMoved ? -100 : 0,
   // y: logoMoved ? -100 : 0, 
- // Move the div horizontally when isMoved is true
+ 
 }}
 transition={{
   delay:0,
-  duration: 1, // Animation duration
-  ease: "easeInOut", // Easing function
+  duration: 1, 
+  ease: "easeInOut", 
 }}
 >
       <TypingAnimation
