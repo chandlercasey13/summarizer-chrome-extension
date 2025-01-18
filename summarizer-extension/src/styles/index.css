@@ -23,7 +23,21 @@ body {
 }
 
 
+.scrollbar-container::-webkit-scrollbar {
+width: 3px;
+padding: 2px;
 
+}
+.scrollbar-container::-webkit-scrollbar-track  {
+  background-color: transparent;
+  
+  }
+  .scrollbar-container::-webkit-scrollbar-thumb  {
+    background-color: rgba(255,255,255, .6);
+    border-radius: 20px;
+    width: 2px;
+    
+    }
 @layer base {
   :root {
     --background: 0 0% 100%;

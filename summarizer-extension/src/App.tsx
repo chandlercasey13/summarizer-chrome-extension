@@ -2,35 +2,30 @@ import { useState } from "react";
 import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
 lineWobble.register();
-
+import { TextAnimate } from "./components/ui/text-animate";
 import "./styles/App.css";
 import "./styles/index.css";
-
-
-
-
+import TypingAnimation from "./components/ui/typing-animation";
+import { motion } from "motion/react"
+import { MonitorStopIcon } from "lucide-react";
+import  DiscreteSlider from "./components/ui/slider"
 
 
 
 function App() {
   const [output, setOutput] = useState("");
-
-
-
-
-
-
-
-
-
-  
+  const [logoMoved, setLogoMoved] =useState(false)
   const handleButtonClick = async () => {
+    setLogoMoved(true)
     if (!chrome?.tabs?.query) {
       console.error("Chrome tabs API is not available");
       return;
     }
 
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
 
     if (tab?.id) {
       chrome.tabs.sendMessage(
@@ -53,7 +48,6 @@ function App() {
     if (message.type === "STREAM_CHUNK") {
       setOutput((prevOutput) => {
         if (prevOutput.includes(message.data)) {
-        
           return prevOutput;
         }
         return prevOutput + message.data;
@@ -67,26 +61,129 @@ function App() {
 
   return (
     <>
-      <div className="flex flex-col justify-start items-center  h-full overflow-hidden pointer-events-auto">
-        {/* <l-line-wobble
-        size="80"
-        stroke="5"
-        bg-opacity="0.1"
-        speed="1.75" 
-        color="white" 
-      ></l-line-wobble> */}
-        <div className="flex justify-center items-center mb-5 ">
-          <IoCrop className="w-[10rem] h-20" color="white" />
-        </div>
-        <button
-          className="bg-white px-2  rounded-xl font-semibold mb-3 pointer-events-auto z-50"
+ 
+    
+      
+
+
+<motion.div className="relative flex flex-col justify-center items-center "
+ initial={false}
+ animate={{
+  
+  minHeight: logoMoved ? "20vh": "100vh",
+ 
+  // x: logoMoved ? -100 : 0,
+  // y: logoMoved ? -100 : 0, 
+ // Move the div horizontally when isMoved is true
+}}
+transition={{
+  delay:0,
+  duration: 1, // Animation duration
+  ease: "easeInOut", // Easing function
+}}>
+      <motion.div  className="absolute top-0 h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
+       style={{
+        
+          margin: "0 auto",
+        }}
+        initial={false}
+        animate={{
+       
+         scale: logoMoved? .4: 1,
+         left: logoMoved ? -120 : 0,
+         //top: logoMoved? 0: 10,
+          // y: logoMoved ? -100 : 0, 
+         // Move the div horizontally when isMoved is true
+        }}
+        transition={{
+          delay:0,
+          duration: 1, // Animation duration
+          ease: "easeInOut", // Easing function
+        }}
+      
+      >
+        <motion.div className="flex w-[10rem] h-[4rem]  justify-center items-center  "
+          
+          initial={false}
+          animate={{
+            marginBottom: logoMoved? "0rem" : "1.25rem",
+width: logoMoved? '6rem': '10rem',
+height: logoMoved? '4.5rem': '4rem',
+          }}
+          transition={{
+            delay:0,
+            duration: 1, // Animation duration
+            ease: "easeInOut", // Easing function
+          }}>
+          <IoCrop className="w-full h-full" color="white" />
+
+
+
+
+        </motion.div>
+        {!logoMoved && (<button
+          className="bg-white px-2  rounded-xl font-bold font-md  mb-3 pointer-events-auto z-50"
           onClick={handleButtonClick}
         >
           Summarize
-        </button>
+        </button>)}
+        
+      
 
-        <div className="text-white w-3/4">{output}</div>
-      </div>
+
+
+
+
+      </motion.div>
+
+
+{logoMoved && (
+  <motion.div className="absolute right-12 opacity-0"
+  animate={{opacity:100 }}
+
+  transition={{
+    delay:0.5,
+    duration: 1, // Animation duration
+    ease: "easeInOut", // Easing function
+  }}
+
+
+  
+  >
+  <DiscreteSlider />
+  </motion.div>
+  )}      
+
+</motion.div>
+
+
+
+<motion.div 
+className=" scrollbar-container mx-1 flex flex-col justify-start items-center overflow-y-auto"
+initial={false}
+animate={{
+  
+  minWidth: "100vw",
+  minHeight: logoMoved ? "80vh": "0",
+  height : logoMoved ? "80vh" : "0",
+  // x: logoMoved ? -100 : 0,
+  // y: logoMoved ? -100 : 0, 
+ // Move the div horizontally when isMoved is true
+}}
+transition={{
+  delay:0,
+  duration: 1, // Animation duration
+  ease: "easeInOut", // Easing function
+}}
+>
+      <TypingAnimation
+          startOnView={false}
+          duration={0.3}
+          className=" text-white w-5/6 text-md font-normal pb-4"
+        >
+          {output}
+        </TypingAnimation>
+        </motion.div>
     </>
   );
 }

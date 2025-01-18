@@ -1,9 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "My Chrome Extension",
+  "name": "Condensed",
   "version": "1.0",
   "action": {
-    
+    "default_icon": {
+      "16": "icons/logo.png",
+      "48": "icons/logo.png",
+      "128": "icons/logo.png"
+    }
   },
   "background": {
     "service_worker": "js/background.js"
