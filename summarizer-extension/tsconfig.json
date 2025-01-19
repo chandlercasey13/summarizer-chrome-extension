@@ -18,7 +18,9 @@
   "include": [
     "src/**/*",
     "tailwind.config.js",
-    "src/components/ui/text-animate.tsx"
+    "src/components/ui/text-animate.tsx",
+    "src/foreground/contentScript.ts",
+    "src/foreground/App.tsx"
   ],
   "exclude": ["node_modules"]
 }

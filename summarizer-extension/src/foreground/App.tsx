@@ -2,20 +2,21 @@ import { useState, useEffect } from "react";
 import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
 lineWobble.register();
-import { TextAnimate } from "./components/ui/text-animate";
-import "./styles/App.css";
-import "./styles/index.css";
-import TypingAnimation from "./components/ui/typing-animation";
+import { TextAnimate } from "../components/ui/text-animate";
+import "../styles/index.css";
+import "../styles/App.css";
+import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
 import { MonitorStopIcon, Tangent } from "lucide-react";
-import DiscreteSlider from "./components/ui/slider";
-import { ShimmerButton } from "./components/ui/shimmer-button";
-import { tabResponseCache } from "./background/tabResponsesCache";
+import DiscreteSlider from "../components/ui/slider";
+import { ShimmerButton } from "../components/ui/shimmer-button";
+import { tabResponseCache } from "../background/tabResponsesCache";
 
 function App() {
   const [output, setOutput] = useState("");
-  const [logoMoved, setLogoMoved] = useState(false);
+  const [logoMoved, setlogoMoved] = useState(false);
   const [newlyLoadedTabId, setNewlyLoadedTabId] = useState(0);
+  const [currentActiveTabId, setCurrentActiveTabId]= useState(0)
   const [buttonClicked, setButtonClicked] = useState(false);
 
   useEffect(() => {
@@ -33,20 +34,20 @@ function App() {
 
       if (tab.id) {
         console.log(tab.id);
-        setNewlyLoadedTabId(tab.id);
+        setCurrentActiveTabId(tab.id);
       }
     })();
 
     const messageListener = (message: any) => {
       if (message.type === "CHANGE_LOGOMOVED" && !logoMoved) {
-        console.log("logomoved");
-        setLogoMoved(true);
+        console.log("logoMoved");
+        setlogoMoved((prev)=>!prev);
 
         // handleButtonClick()
       } else if (message.type === "STREAM_COMPLETE") {
         setOutput(message.data);
 
-        console.log("stream complete");
+        console.log("AI Response Finished");
 
         //when done with ai response, set cache with tab id and response
       } else if (message.type === "ERROR") {
@@ -54,26 +55,18 @@ function App() {
       }
     };
 
-    chrome.runtime.onMessage.addListener(messageListener);
-
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
-      if (tabResponseCache.has(activeInfo.tabId)) {
-        setOutput(tabResponseCache.get(activeInfo.tabId) as string);
-      } else {
-        chrome.tabs.sendMessage(
-          activeInfo.tabId,
-          { type: "SEND_DOM", payload: "Request to fetch DOM" },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              console.error("Error:", chrome.runtime.lastError.message);
-            } else {
-              // console.log("Response from content script:", response);
-            }
-          }
-        );
-      }
+      
+
+      setCurrentActiveTabId(activeInfo.tabId)
+
+  
+
+
+ 
     };
 
+    chrome.runtime.onMessage.addListener(messageListener);
     chrome.tabs.onActivated.addListener(handleTabActivated);
 
     return () => {
@@ -83,30 +76,51 @@ function App() {
   }, []);
 
   useEffect(() => {
-    //anytime the tab changes or the extension is open
 
-    console.log("presend");
-    //there needs to be something to stop duplicate calls
-  }, [newlyLoadedTabId]);
+//if we press the chrome extension
 
-  useEffect(() => {
+
     if (logoMoved) {
-      if (!tabResponseCache.has(newlyLoadedTabId)) {
-        console.log("trying to send");
-        chrome.tabs.sendMessage(
-          newlyLoadedTabId,
-          { type: "SEND_DOM", payload: "Request to fetch DOM" },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              console.error("Error:", chrome.runtime.lastError.message);
+      
+//do we have the tab's response cached in the background.ts?   
+      chrome.runtime.sendMessage(
+        { type: "TAB_IN_CACHE", data: currentActiveTabId },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.error("Error:", chrome.runtime.lastError.message);
+          } else {
+           // console.log("Is Tab in Cache?", response);
+
+//if not, send the DOM and get a response
+            if (response === false){
+              console.log("trying to send");
+              chrome.tabs.sendMessage(
+                currentActiveTabId,
+                { type: "SEND_DOM", payload: "Request to fetch DOM" },
+                (response) => {
+                  if (chrome.runtime.lastError) {
+                    console.error("Error:", chrome.runtime.lastError.message);
+                  } else {
+                    // console.log("Response from content script:", response);
+                  }
+                }
+              );
             } else {
-              // console.log("Response from content script:", response);
+
+              
             }
+
+
+
+
+
           }
-        );
-      }
+        }
+      );
+     
     }
   }, [logoMoved]);
+
   return (
     <>
       <motion.div

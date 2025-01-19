@@ -6,7 +6,7 @@ export default {
     entry: {
         background: "./src/background/background.ts",
         index: "./src/index.tsx",
-        contentScript: "./src/contentScript.ts",
+        contentScript: "./src/foreground/contentScript.ts",
     },
     mode: "production",
     module: {

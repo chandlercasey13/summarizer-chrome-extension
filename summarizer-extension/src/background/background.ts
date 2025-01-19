@@ -5,19 +5,31 @@ let currentTab:number;
 
 
 
+// get the very first tab the user loads into
+(async () => {
+  if (!chrome?.tabs?.query) {
+    console.error("Chrome tabs API is not available");
+    return;
+  }
+
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+
+  if (tab.id) {
+    console.log(tab.id);
+    currentTab = tab.id
+  }
+})()
 
 
-
-chrome.action.onClicked.addListener(function (tab) {
-  chrome.tabs.sendMessage(tab.id as number, "toggle");
-  
-});
-
-
+//listen for tab changes
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
    currentTab =activeInfo.tabId
+   console.log('background',currentTab)
     chrome.runtime.sendMessage({
       type: "TAB_CHANGED",
       data: activeInfo.tabId,
@@ -29,10 +41,21 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 
 
 
+chrome.action.onClicked.addListener(function (tab) {
+  chrome.tabs.sendMessage(tab.id as number, "toggle");
+});
+
+
+
+
+
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "DOM_CONTENT") {
+  //if we're sending a message to send the dom content, and the tab we're requesting
+  //isn't already in our cache
+  if (message.type === "DOM_CONTENT" && !tabResponseCache.has(currentTab)) {
+    
     const domContent = message.payload;
 
    // console.log("Received DOM content from content script:", domContent);
@@ -86,4 +109,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true;
   }
+
+if (message.type === "TAB_IN_CACHE" ){
+  console.log('querying cache')
+  
+  sendResponse(tabResponseCache.has(message.data))
+}
+
+
+
+
+
+
+
+
 });

@@ -17,7 +17,7 @@ body {
  
   
   border-radius: 20px;
- background-color: black;
+ background-color:  rgba(0,0,0, .8);;
  border-color: transparent;
  overflow: hidden;
 }
