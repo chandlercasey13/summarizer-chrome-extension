@@ -1,7 +1,7 @@
 chrome.runtime.onMessage.addListener(function(msg, sender){
 
     if(msg == "toggle"){
-        console.log('toggle')
+        
         toggle();
         chrome.runtime.sendMessage(
             { type: "CHANGE_LOGOMOVED" },

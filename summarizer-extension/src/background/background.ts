@@ -1,7 +1,35 @@
+import { tabResponseCache } from "./tabResponsesCache";
+
+
+let currentTab:number;
+
+
+
+
+
+
 chrome.action.onClicked.addListener(function (tab) {
   chrome.tabs.sendMessage(tab.id as number, "toggle");
   
 });
+
+
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  chrome.tabs.get(activeInfo.tabId, (tab) => {
+   currentTab =activeInfo.tabId
+    chrome.runtime.sendMessage({
+      type: "TAB_CHANGED",
+      data: activeInfo.tabId,
+    });
+   
+   
+  });
+});
+
+
+
+
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "DOM_CONTENT") {
@@ -21,11 +49,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder("utf-8");
-        let fullText = "";
+        let fullText:string = "";
 
         const readStream: any = () => {
           return reader.read().then(({ done, value }) => {
             if (done) {
+              chrome.runtime.sendMessage({
+                type: "STREAM_COMPLETE",
+                data:fullText
+              });
+              
+              tabResponseCache.set(currentTab, fullText)
+              console.log(tabResponseCache)
              // console.log("Streaming complete:", fullText);
               sendResponse({ status: "Success", data: fullText });
               return;
