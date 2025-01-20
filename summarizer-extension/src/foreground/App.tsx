@@ -14,9 +14,10 @@ import { tabResponseCache } from "../background/tabResponsesCache";
 
 function App() {
   const [output, setOutput] = useState("");
-  const [logoMoved, setlogoMoved] = useState(false);
-  const [newlyLoadedTabId, setNewlyLoadedTabId] = useState(0);
-  const [currentActiveTabId, setCurrentActiveTabId]= useState(0)
+  const [extensionOpened, setExtensionOpened] = useState(false);
+  const [animationPlayedOnce, setAnimationPlayedOnce] = useState(false);
+  const [currentActiveTabId, setCurrentActiveTabId] = useState(0);
+
   const [buttonClicked, setButtonClicked] = useState(false);
 
   useEffect(() => {
@@ -39,9 +40,10 @@ function App() {
     })();
 
     const messageListener = (message: any) => {
-      if (message.type === "CHANGE_LOGOMOVED" && !logoMoved) {
+      if (message.type === "EXTENSION_OPENED" && !extensionOpened) {
         console.log("logoMoved");
-        setlogoMoved((prev)=>!prev);
+        setAnimationPlayedOnce(true)
+        setExtensionOpened((prev) => !prev);
 
         // handleButtonClick()
       } else if (message.type === "STREAM_COMPLETE") {
@@ -56,14 +58,38 @@ function App() {
     };
 
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
-      
+      setCurrentActiveTabId(activeInfo.tabId);
 
-      setCurrentActiveTabId(activeInfo.tabId)
+      //if we switch tabs, we want the output state to be the previously cached response
+      chrome.runtime.sendMessage(
+        { type: "TAB_IN_CACHE", data: activeInfo.tabId },
+        (response) => {
+          console.log("response tabChange");
+          if (chrome.runtime.lastError) {
+            console.error("Error:", chrome.runtime.lastError.message);
+          } else {
+            // console.log("Is Tab in Cache?", response);
 
-  
-
-
- 
+            //if not, send the DOM and get a response
+            if (response.booleanresponse === false) {
+              console.log("trying to send");
+              chrome.tabs.sendMessage(
+                currentActiveTabId,
+                { type: "SEND_DOM", payload: "Request to fetch DOM" },
+                (response) => {
+                  if (chrome.runtime.lastError) {
+                    console.error("Error:", chrome.runtime.lastError.message);
+                  } else {
+                    console.log("was in cache");
+                    // console.log("Response from content script:", response);
+                  }
+                }
+              );
+            } else {
+            }
+          }
+        }
+      );
     };
 
     chrome.runtime.onMessage.addListener(messageListener);
@@ -76,23 +102,21 @@ function App() {
   }, []);
 
   useEffect(() => {
+    //if we press the chrome extension
 
-//if we press the chrome extension
-
-
-    if (logoMoved) {
-      
-//do we have the tab's response cached in the background.ts?   
+    if (extensionOpened) {
+      //do we have the tab's response cached in the background.ts?
       chrome.runtime.sendMessage(
         { type: "TAB_IN_CACHE", data: currentActiveTabId },
         (response) => {
+          console.log(response.booleanresponse);
           if (chrome.runtime.lastError) {
             console.error("Error:", chrome.runtime.lastError.message);
           } else {
-           // console.log("Is Tab in Cache?", response);
+            // console.log("Is Tab in Cache?", response);
 
-//if not, send the DOM and get a response
-            if (response === false){
+            //if not, send the DOM and get a response
+            if (response.booleanresponse === false) {
               console.log("trying to send");
               chrome.tabs.sendMessage(
                 currentActiveTabId,
@@ -101,25 +125,18 @@ function App() {
                   if (chrome.runtime.lastError) {
                     console.error("Error:", chrome.runtime.lastError.message);
                   } else {
+                    console.log("was in cache");
                     // console.log("Response from content script:", response);
                   }
                 }
               );
             } else {
-
-              
             }
-
-
-
-
-
           }
         }
       );
-     
     }
-  }, [logoMoved]);
+  }, [extensionOpened]);
 
   return (
     <>
@@ -127,7 +144,7 @@ function App() {
         className="relative flex flex-col justify-center items-center "
         initial={false}
         animate={{
-          minHeight: logoMoved ? "20vh" : "100vh",
+          minHeight: animationPlayedOnce ? "20vh" : "100vh",
 
           // x: logoMoved ? -100 : 0,
           // y: logoMoved ? -100 : 0,
@@ -146,8 +163,8 @@ function App() {
           }}
           initial={false}
           animate={{
-            scale: logoMoved ? 0.4 : 1,
-            left: logoMoved ? -120 : 0,
+            scale: animationPlayedOnce ? 0.4 : 1,
+            left: animationPlayedOnce ? -120 : 0,
             //top: logoMoved? 0: 10,
             // y: logoMoved ? -100 : 0,
           }}
@@ -161,9 +178,9 @@ function App() {
             className="flex w-[10rem] h-[4rem]  justify-center items-center  "
             initial={false}
             animate={{
-              marginBottom: logoMoved ? "0rem" : ".5rem",
-              width: logoMoved ? "6rem" : "10rem",
-              height: logoMoved ? "4.5rem" : "6rem",
+              marginBottom: animationPlayedOnce ? "0rem" : ".5rem",
+              width: animationPlayedOnce ? "6rem" : "10rem",
+              height: animationPlayedOnce ? "4.5rem" : "6rem",
             }}
             transition={{
               delay: 1,
@@ -183,7 +200,7 @@ function App() {
         </ShimmerButton>)} */}
         </motion.div>
 
-        {logoMoved && (
+        {extensionOpened && (
           <motion.div
             className="absolute right-12 opacity-0"
             animate={{ opacity: 100 }}
@@ -203,8 +220,8 @@ function App() {
         initial={false}
         animate={{
           minWidth: "100vw",
-          minHeight: logoMoved ? "80vh" : "0",
-          height: logoMoved ? "80vh" : "0",
+          minHeight: animationPlayedOnce ? "80vh" : "0",
+          height: animationPlayedOnce ? "80vh" : "0",
           // x: logoMoved ? -100 : 0,
           // y: logoMoved ? -100 : 0,
         }}

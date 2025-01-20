@@ -4,7 +4,7 @@ chrome.runtime.onMessage.addListener(function(msg, sender){
         
         toggle();
         chrome.runtime.sendMessage(
-            { type: "CHANGE_LOGOMOVED" },
+            { type: "EXTENSION_OPENED" },
             
           );
     }

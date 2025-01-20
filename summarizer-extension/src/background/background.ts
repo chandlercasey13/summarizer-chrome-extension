@@ -110,14 +110,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+
+
+
 if (message.type === "TAB_IN_CACHE" ){
-  console.log('querying cache')
   
-  sendResponse(tabResponseCache.has(message.data))
+   if (tabResponseCache.has(message.data)) {
+    sendResponse({booleanresponse: true, data: tabResponseCache.get(message.data)})
+   } else {
+  
+  sendResponse({booleanresponse:false, data:null})
 }
+return true; 
 
-
-
+}
 
 
 
