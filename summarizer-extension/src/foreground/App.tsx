@@ -2,23 +2,17 @@ import { useState, useEffect } from "react";
 import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
 lineWobble.register();
-import { TextAnimate } from "../components/ui/text-animate";
+
 import "../styles/index.css";
 import "../styles/App.css";
 import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
-import { MonitorStopIcon, Tangent } from "lucide-react";
-import DiscreteSlider from "../components/ui/slider";
-import { ShimmerButton } from "../components/ui/shimmer-button";
-import { tabResponseCache } from "../background/tabResponsesCache";
 
 function App() {
   const [output, setOutput] = useState("");
   const [extensionOpened, setExtensionOpened] = useState(false);
   const [animationPlayedOnce, setAnimationPlayedOnce] = useState(false);
   const [currentActiveTabId, setCurrentActiveTabId] = useState(0);
-
-  const [buttonClicked, setButtonClicked] = useState(false);
 
   useEffect(() => {
     //get currentTab that user is in
@@ -42,10 +36,8 @@ function App() {
     const messageListener = (message: any) => {
       if (message.type === "EXTENSION_OPENED" && !extensionOpened) {
         console.log("logoMoved");
-        setAnimationPlayedOnce(true)
+        setAnimationPlayedOnce(true);
         setExtensionOpened((prev) => !prev);
-
-        // handleButtonClick()
       } else if (message.type === "STREAM_COMPLETE") {
         setOutput(message.data);
 
@@ -64,12 +56,11 @@ function App() {
       chrome.runtime.sendMessage(
         { type: "TAB_IN_CACHE", data: activeInfo.tabId },
         (response) => {
+          console.log(response.data);
           console.log("response tabChange");
           if (chrome.runtime.lastError) {
             console.error("Error:", chrome.runtime.lastError.message);
           } else {
-            // console.log("Is Tab in Cache?", response);
-
             //if not, send the DOM and get a response
             if (response.booleanresponse === false) {
               console.log("trying to send");
@@ -79,13 +70,12 @@ function App() {
                 (response) => {
                   if (chrome.runtime.lastError) {
                     console.error("Error:", chrome.runtime.lastError.message);
-                  } else {
-                    console.log("was in cache");
-                    // console.log("Response from content script:", response);
                   }
                 }
               );
             } else {
+              console.log("resdata", response.data);
+              setOutput(response.data);
             }
           }
         }
@@ -102,35 +92,30 @@ function App() {
   }, []);
 
   useEffect(() => {
-    //if we press the chrome extension
 
+    //if we press the chrome extension
     if (extensionOpened) {
       //do we have the tab's response cached in the background.ts?
       chrome.runtime.sendMessage(
         { type: "TAB_IN_CACHE", data: currentActiveTabId },
         (response) => {
-          console.log(response.booleanresponse);
           if (chrome.runtime.lastError) {
             console.error("Error:", chrome.runtime.lastError.message);
           } else {
-            // console.log("Is Tab in Cache?", response);
-
+          
             //if not, send the DOM and get a response
             if (response.booleanresponse === false) {
-              console.log("trying to send");
               chrome.tabs.sendMessage(
                 currentActiveTabId,
                 { type: "SEND_DOM", payload: "Request to fetch DOM" },
                 (response) => {
                   if (chrome.runtime.lastError) {
                     console.error("Error:", chrome.runtime.lastError.message);
-                  } else {
-                    console.log("was in cache");
-                    // console.log("Response from content script:", response);
-                  }
+                  } 
                 }
               );
             } else {
+              setOutput(response.data);
             }
           }
         }
@@ -146,9 +131,7 @@ function App() {
         animate={{
           minHeight: animationPlayedOnce ? "20vh" : "100vh",
 
-          // x: logoMoved ? -100 : 0,
-          // y: logoMoved ? -100 : 0,
-          // Move the div horizontally when isMoved is true
+  
         }}
         transition={{
           delay: 1,
@@ -165,8 +148,7 @@ function App() {
           animate={{
             scale: animationPlayedOnce ? 0.4 : 1,
             left: animationPlayedOnce ? -120 : 0,
-            //top: logoMoved? 0: 10,
-            // y: logoMoved ? -100 : 0,
+          
           }}
           transition={{
             delay: 1,
@@ -190,14 +172,7 @@ function App() {
           >
             <IoCrop className="w-full h-full" color="white" />
           </motion.div>
-          {/* {!logoMoved && (<ShimmerButton
-          className="bg-white px-2 py-1  rounded-xl font-bold font-md  mb-3 pointer-events-auto z-50"
-          onClick={handleButtonClick}
-         
-          shimmerSize=".05em"
-        >
-          Summarize
-        </ShimmerButton>)} */}
+  
         </motion.div>
 
         {extensionOpened && (
@@ -210,7 +185,7 @@ function App() {
               ease: "easeInOut",
             }}
           >
-            {/* <DiscreteSlider /> */}
+          
           </motion.div>
         )}
       </motion.div>
@@ -222,8 +197,7 @@ function App() {
           minWidth: "100vw",
           minHeight: animationPlayedOnce ? "80vh" : "0",
           height: animationPlayedOnce ? "80vh" : "0",
-          // x: logoMoved ? -100 : 0,
-          // y: logoMoved ? -100 : 0,
+          
         }}
         transition={{
           delay: 0,
