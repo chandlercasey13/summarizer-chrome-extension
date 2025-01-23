@@ -51,7 +51,7 @@ function App() {
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
       
       setCurrentActiveTabId(activeInfo.tabId);
-      
+      setOutput('')
 
       //if we switch tabs, we want the output state to be the previously cached response
     
@@ -163,7 +163,7 @@ function App() {
           }}
         >
           <motion.div
-            className="flex w-[10rem] h-[4rem]  justify-center items-center  "
+            className="flex w-[10rem] h-[4rem]  justify-center items-center overflow-hidden  "
             initial={false}
             animate={{
               marginBottom: animationPlayedOnce ? "0rem" : ".5rem",
@@ -176,7 +176,8 @@ function App() {
               ease: "easeInOut",
             }}
           >
-            <IoCrop className="w-full h-full" color="white" />
+            <IoCrop className="w-full h-full overflow-hidden" color="white" />
+           
           </motion.div>
   
         </motion.div>

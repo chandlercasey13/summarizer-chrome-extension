@@ -65,7 +65,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
    
 
-    fetch("http://localhost:3000", {
+    fetch("http://3.129.21.98/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ domContent }),
