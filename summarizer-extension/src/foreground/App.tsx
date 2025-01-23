@@ -13,6 +13,7 @@ function App() {
   const [extensionOpened, setExtensionOpened] = useState(false);
   const [animationPlayedOnce, setAnimationPlayedOnce] = useState(false);
   const [currentActiveTabId, setCurrentActiveTabId] = useState(0);
+  const [hasTextAnimated, setHasTextAnimated]=useState(false);
 
   useEffect(() => {
     //get currentTab that user is in
@@ -28,20 +29,18 @@ function App() {
       });
 
       if (tab.id) {
-        console.log(tab.id);
         setCurrentActiveTabId(tab.id);
       }
     })();
 
     const messageListener = (message: any) => {
       if (message.type === "EXTENSION_OPENED" && !extensionOpened) {
-        console.log("logoMoved");
         setAnimationPlayedOnce(true);
+       
         setExtensionOpened((prev) => !prev);
       } else if (message.type === "STREAM_COMPLETE") {
         setOutput(message.data);
 
-        console.log("AI Response Finished");
 
         //when done with ai response, set cache with tab id and response
       } else if (message.type === "ERROR") {
@@ -50,20 +49,22 @@ function App() {
     };
 
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
+      
       setCurrentActiveTabId(activeInfo.tabId);
+      
 
       //if we switch tabs, we want the output state to be the previously cached response
+    
       chrome.runtime.sendMessage(
         { type: "TAB_IN_CACHE", data: activeInfo.tabId },
         (response) => {
-          console.log(response.data);
-          console.log("response tabChange");
+         
           if (chrome.runtime.lastError) {
             console.error("Error:", chrome.runtime.lastError.message);
           } else {
             //if not, send the DOM and get a response
             if (response.booleanresponse === false) {
-              console.log("trying to send");
+              
               chrome.tabs.sendMessage(
                 currentActiveTabId,
                 { type: "SEND_DOM", payload: "Request to fetch DOM" },
@@ -74,7 +75,9 @@ function App() {
                 }
               );
             } else {
-              console.log("resdata", response.data);
+            
+              //ensures text only animates when the response is NOT in cache
+              setHasTextAnimated(true)
               setOutput(response.data);
             }
           }
@@ -91,6 +94,7 @@ function App() {
     };
   }, []);
 
+//everytime extension is opened or closed
   useEffect(() => {
 
     //if we press the chrome extension
@@ -115,6 +119,8 @@ function App() {
                 }
               );
             } else {
+               //ensures text only animates when the response is NOT in cache
+              setHasTextAnimated(true)
               setOutput(response.data);
             }
           }
@@ -205,13 +211,25 @@ function App() {
           ease: "easeInOut",
         }}
       >
-        <TypingAnimation
-          startOnView={false}
-          duration={0.3}
-          className=" text-white w-5/6 text-md font-normal pb-4"
-        >
-          {output}
-        </TypingAnimation>
+{!hasTextAnimated ? (
+ <TypingAnimation
+ startOnView={false}
+ duration={0.3}
+ className=" text-white w-5/6 text-md font-normal pb-4"
+>
+ {output}
+</TypingAnimation>
+) 
+:
+(
+<div className=" text-white w-5/6 text-md font-normal pb-4"
+>{output}</div>
+
+
+)}
+
+
+       
       </motion.div>
     </>
   );

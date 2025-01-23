@@ -38,14 +38,9 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
   chrome.tabs.get(activeInfo.tabId, (tab) => {
-   currentTab =activeInfo.tabId
-   console.log('background',currentTab)
-    chrome.runtime.sendMessage({
-      type: "TAB_CHANGED",
-      data: activeInfo.tabId,
-    });
+   currentTab = activeInfo.tabId
    
-   
+
   });
 });
 
@@ -125,8 +120,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 if (message.type === "TAB_IN_CACHE" ){
   
-console.log(tabResponseCache.get(message.data))
-
    if (tabResponseCache.has(message.data)) {
     sendResponse({booleanresponse: true, data: tabResponseCache.get(message.data)})
    } else {
