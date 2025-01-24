@@ -18,6 +18,8 @@ let currentTab:number;
 
   if (tab.id) {
     console.log(tab.id);
+    console.log('work')
+   
     currentTab = tab.id
   }
 })()
@@ -46,9 +48,19 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 
 
 
-chrome.action.onClicked.addListener(function (tab) {
-  chrome.tabs.sendMessage(tab.id as number, "toggle");
+chrome.runtime.onConnect.addListener((port) => {
+  console.log(`Connected: ${port.name}`);
+  
+  chrome.runtime.sendMessage({ type: "EXTENSION_OPENED" });
+
+
+  // Handle disconnect event
+  port.onDisconnect.addListener(() => {
+      console.log(`Disconnected: ${port.name}`);
+      // Perform cleanup or other actions here
+  });
 });
+
 
 
 

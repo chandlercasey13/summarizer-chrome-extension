@@ -5,7 +5,19 @@
 
 /* ... */
 
+*{
+  background:none
+}
 
+
+html{
+  background: none !important;
+}
+
+
+.container {
+  background: none !important;
+}
 
 body {
   margin: 0;
@@ -17,7 +29,7 @@ body {
  
   
 border-radius: 5px;
- background-color:  black;
+ background: none !important;
 
  overflow: hidden;
 }
@@ -29,11 +41,11 @@ padding: 2px;
 
 }
 .scrollbar-container::-webkit-scrollbar-track  {
-  /* background-color: transparent; */
+  background-color: transparent;
   
   }
   .scrollbar-container::-webkit-scrollbar-thumb  {
-    /* background-color: rgba(255,255,255, .6); */
+    background-color: rgba(255,255,255, .6);
     border-radius: 20px;
     width: 2px;
     

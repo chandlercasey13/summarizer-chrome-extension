@@ -16,6 +16,19 @@ function App() {
   const [hasTextAnimated, setHasTextAnimated]=useState(false);
 
   useEffect(() => {
+
+    const port = chrome.runtime.connect({ name: "sidebar" });
+
+    // Optionally, listen for messages from the background
+    port.onMessage.addListener((message) => {
+        console.log("Message from background:", message);
+    });
+    
+    // Send a message to the background script
+    port.postMessage({ greeting: "Hello from the sidebar!" });
+
+
+
     //get currentTab that user is in
     (async () => {
       if (!chrome?.tabs?.query) {
@@ -132,10 +145,10 @@ function App() {
   return (
     <>
       <motion.div
-        className="relative flex flex-col justify-center items-center "
+        className="relative flex flex-col justify-center items-center bg-black"
         initial={false}
         animate={{
-          minHeight: animationPlayedOnce ? "20vh" : "100vh",
+          minHeight: animationPlayedOnce ? "10vh" : "100vh",
 
   
         }}
@@ -146,7 +159,7 @@ function App() {
         }}
       >
         <motion.div
-          className="absolute top-0 h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
+          className=" bg-transparent absolute top-0 h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
           style={{
             margin: "0 auto",
           }}
@@ -163,7 +176,7 @@ function App() {
           }}
         >
           <motion.div
-            className="flex w-[10rem] h-[4rem]  justify-center items-center overflow-hidden  "
+            className="flex w-[10rem] h-[4rem] bg-transparent  justify-center items-center overflow-hidden  "
             initial={false}
             animate={{
               marginBottom: animationPlayedOnce ? "0rem" : ".5rem",
@@ -184,7 +197,7 @@ function App() {
 
         {extensionOpened && (
           <motion.div
-            className="absolute right-12 opacity-0"
+            className="absolute right-12 opacity-0 bg-transparent"
             animate={{ opacity: 100 }}
             transition={{
               delay: 0.5,
@@ -198,7 +211,7 @@ function App() {
       </motion.div>
 
       <motion.div
-        className=" scrollbar-container mx-1 flex flex-col justify-start items-center overflow-y-auto"
+        className=" scrollbar-container overflow-hidden bg-transparent pb-4 flex flex-col justify-start items-center overflow-y-auto"
         initial={false}
         animate={{
           minWidth: "100vw",
@@ -213,19 +226,22 @@ function App() {
         }}
       >
 {!hasTextAnimated ? (
+  <div className=" rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-black pb-4">
  <TypingAnimation
  startOnView={false}
  duration={0.3}
- className=" text-white w-5/6 text-md font-normal pb-4"
+ className=" text-white w-5/6 text-md font-normal pb-4 bg-black"
 >
  {output}
 </TypingAnimation>
+</div>
 ) 
 :
 (
-<div className=" text-white w-5/6 text-md font-normal pb-4"
+  <div className="w-full flex justify-center items-center overflow-hidden bg-black rounded-sm">
+<div className=" text-white w-5/6 text-md font-normal pb-4 bg-black"
 >{output}</div>
-
+</div>
 
 )}
 

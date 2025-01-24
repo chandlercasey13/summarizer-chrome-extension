@@ -3,19 +3,27 @@
   "name": "Condensed",
   "version": "1.0",
   "action": {
-    "default_icon": {
-      "16": "icons/logo-white16.png"
+    
+     
+      "default_title" : "Click Me"
+    
+},
   
-    }
+"side_panel": {
+  "default_path": "js/index.html"
+},
+
+
+"icons": {
+  "16": "icons/logo-white16.png",
+        "48": "icons/logo-white48.png",
+        "128": "icons/logo-white128.png"
   },
-  "icons": {
-    "48": "icons/logo-white48.png",
-      "128": "icons/logo-white128.png"
-  },
+  
   "background": {
     "service_worker": "js/background.js"
   },
-  "permissions": ["windows", "activeTab", "scripting", "tabs"],
+  "permissions": ["windows", "activeTab", "scripting", "tabs", "sidePanel"],
  "content_scripts": [
   {
     "matches": ["https://*/*", "http://*/*"], 
