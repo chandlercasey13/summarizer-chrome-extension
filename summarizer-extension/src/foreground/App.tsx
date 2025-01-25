@@ -5,11 +5,33 @@ import { Slider } from "../components/ui/slider"
 
 lineWobble.register();
 
+
+
+
+
+import { quantum } from 'ldrs'
+
+quantum.register()
+
+// Default values shown
+
+import { ring } from 'ldrs'
+
+ring.register()
+
+
+import { Skeleton } from "../components/ui/skeleton"
+
+
+
+
+
 import "../styles/index.css";
 import "../styles/App.css";
 import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
 import { TbCopy } from "react-icons/tb";
+import { Tab } from "@mui/material";
 
 function App() {
   const [output, setOutput] = useState("");
@@ -49,11 +71,34 @@ function App() {
       }
     })();
 
-    const messageListener = (message: any) => {
+
+
+
+
+
+
+    const messageListener = (message: any, sender: chrome.runtime.MessageSender, sendResponse: (response?: any) => void) => {
       if (message.type === "EXTENSION_OPENED" && !extensionOpened) {
         setAnimationPlayedOnce(true);
-       
         setExtensionOpened((prev) => !prev);
+    
+        //this is for telling the background what tab the extension is being opened in
+        
+        (async () => {
+          if (!chrome?.tabs?.query) {
+            console.error("Chrome tabs API is not available");
+            return;
+          }
+    
+          const [tab] = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          sendResponse({ status: "success", message: `${tab.id}` });
+         
+        })();
+
+       
       } else if (message.type === "STREAM_COMPLETE") {
         setOutput(message.data);
 
@@ -62,12 +107,18 @@ function App() {
       } else if (message.type === "ERROR") {
         console.error("Error received from background:", message.error);
       }
+    
+      // Optional: Return true to indicate the response will be sent asynchronously
+      return true;
     };
 
+
+
+
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
-      
+      setOutput(``)
       setCurrentActiveTabId(activeInfo.tabId);
-      setOutput('')
+      
 
       //if we switch tabs, we want the output state to be the previously cached response
     
@@ -81,15 +132,20 @@ function App() {
             //if not, send the DOM and get a response
             if (response.booleanresponse === false) {
               
+              setOutput(``)
               chrome.tabs.sendMessage(
-                currentActiveTabId,
+                activeInfo.tabId,
                 { type: "SEND_DOM", payload: "Request to fetch DOM" },
                 (response) => {
+                  
                   if (chrome.runtime.lastError) {
+                    
                     console.error("Error:", chrome.runtime.lastError.message);
                   }
                 }
-              );
+              )
+              
+              
             } else {
             
               //ensures text only animates when the response is NOT in cache
@@ -241,6 +297,8 @@ function App() {
      duration: .5,
      ease: "easeInOut",
    }} >
+
+
     <button className=" font-[Inter] flex justify-center items-center text-white font-light w-full h-full ">
 <TbCopy className="flex items-center w-full h-full" color="white"> 
   </TbCopy>
@@ -273,7 +331,7 @@ function App() {
      
      </div>  
        
-        <Slider className="  w-full rounded-lg mt-2" defaultValue={[200]} max={400} step={100}/>
+        <Slider className="  w-full rounded-lg mt-2" defaultValue={[100]} max={300} step={100}/>
         
         </motion.div>
 
@@ -313,21 +371,30 @@ function App() {
           ease: "easeInOut",
         }}
       >
-{!hasTextAnimated ? (
-  <div className=" rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-black pb-4">
+{!hasTextAnimated ? ( output  ? (   <div className=" rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-black pb-4">
  <TypingAnimation
  startOnView={false}
  duration={5}
- className="font-[Inter] leading-[6rem] text-white w-5/6 text-[.85rem] font-light pt-4 pb-4 bg-black"
+ className="font-[Inter]  text-white w-5/6 min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-black"
 >
+ 
  {output}
 </TypingAnimation>
+</div>) : (
+<div className="h-[80%] w-full  flex justify-center items-center">
+<l-quantum 
+size="60"
+speed="1.75" 
+color="white" 
+></l-quantum>
 </div>
+)
+
 ) 
 :
 (
   <div className="w-full flex justify-center items-center overflow-hidden bg-black rounded-sm">
-<div  className="font-[Inter] leading-[6rem] text-white w-5/6 text-[.85rem] font-light pb-4 bg-black"
+<div  className="font-[Inter]  text-white w-5/6 text-[.85rem] font-light pt-5 pb-4 bg-black"
 >{output}</div>
 </div>
 
@@ -335,22 +402,22 @@ function App() {
 
 
 
-
-<motion.div
+{output &&(<motion.div
  className="h-2 w-5/6 border-[1px] border-white/30 border-l-0 border-r-0 border-b-0  "
  initial={false}
  animate={{
-  opacity :animationPlayedOnce ? 1 : 0,
+  opacity :output ? 1 : 0,
    
  }}
  transition={{
-   delay: 2,
-   duration: .5,
+   delay: 0,
+   duration: 2,
    ease: "easeInOut",
  }}>
+<p className=" text-center text-white/30 mt-1 font-light ">This summary is 50% shorter than the original text</p>
 
+</motion.div>)}
 
-</motion.div>
        
       </motion.div>
       

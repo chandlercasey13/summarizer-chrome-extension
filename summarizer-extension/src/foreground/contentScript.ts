@@ -8,6 +8,8 @@
 
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+ console.log(message.payload)
+
   if (message.type === "SEND_DOM") {
     const domContent = document.documentElement.innerText;
 
