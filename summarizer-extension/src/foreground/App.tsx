@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
+import { Slider } from "../components/ui/slider"
+
 lineWobble.register();
 
 import "../styles/index.css";
 import "../styles/App.css";
 import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
+import { TbCopy } from "react-icons/tb";
 
 function App() {
   const [output, setOutput] = useState("");
@@ -148,7 +151,7 @@ function App() {
         className="relative flex flex-col justify-center items-center bg-black"
         initial={false}
         animate={{
-          minHeight: animationPlayedOnce ? "10vh" : "100vh",
+          minHeight: animationPlayedOnce ? "15vh" : "100vh",
 
   
         }}
@@ -158,15 +161,22 @@ function App() {
           ease: "easeInOut",
         }}
       >
+
+
+
+
+
+
+
         <motion.div
-          className=" bg-transparent absolute top-0 h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
+          className=" bg-transparent absolute -top-2  h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
           style={{
             margin: "0 auto",
           }}
           initial={false}
           animate={{
             scale: animationPlayedOnce ? 0.4 : 1,
-            left: animationPlayedOnce ? -120 : 0,
+            left: animationPlayedOnce ? -125 : 0,
           
           }}
           transition={{
@@ -180,8 +190,8 @@ function App() {
             initial={false}
             animate={{
               marginBottom: animationPlayedOnce ? "0rem" : ".5rem",
-              width: animationPlayedOnce ? "6rem" : "10rem",
-              height: animationPlayedOnce ? "4.5rem" : "6rem",
+              width: animationPlayedOnce ? "10rem" : "10rem",
+              height: animationPlayedOnce ? "10rem" : "6rem",
             }}
             transition={{
               delay: 1,
@@ -190,14 +200,92 @@ function App() {
             }}
           >
             <IoCrop className="w-full h-full overflow-hidden" color="white" />
-           
+            
           </motion.div>
-  
+          </motion.div>
+
+
+
+
+
+
+
+
+          <motion.div
+          className=" bg-transparent absolute -top-2 h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
+          style={{
+            margin: "0 auto",
+          }}
+          initial={false}
+          animate={{
+            scale: animationPlayedOnce ? 1 : 1,
+            right:  -110
+          
+          }}
+          transition={{
+            delay: 1,
+            duration: 1,
+            ease: "easeInOut",
+          }}
+        >
+  <motion.div  
+   className="flex w-[4.5rem] h-[1.75rem]  text-md bg-transparent text-white justify-center items-center overflow-hidden rounded-md p-1 pr-2  hover:bg-white/50   "
+   initial={false}
+   animate={{
+    opacity :animationPlayedOnce ? 1 : 0,
+    
+    
+   }}
+   transition={{
+     delay: 2,
+     duration: .5,
+     ease: "easeInOut",
+   }} >
+    <button className=" font-[Inter] flex justify-center items-center text-white font-light w-full h-full ">
+<TbCopy className="flex items-center w-full h-full" color="white"> 
+  </TbCopy>
+  Copy
+  </button>
+</motion.div>
         </motion.div>
+        
+        
+        
+        
+        
+        
+        
+        <motion.div  className=" text-white font-extralight absolute bottom-1 w-5/6 flex flex-col items-center justify-center  "
+   initial={false}
+   animate={{
+    opacity :animationPlayedOnce ? 1 : 0,
+    
+    
+   }}
+   transition={{
+     delay: 2,
+     duration: .5,
+     ease: "easeInOut",
+   }} >
+    <div className="min-w-full flex justify-between items-center">
+      <p className=" font-[Inter] w-1/2 flex justify-start items-center">shorter</p>
+      <p className=" font-[Inter] w-1/2 flex justify-end items-center">longer</p>
+     
+     </div>  
+       
+        <Slider className="  w-full rounded-lg mt-2" defaultValue={[200]} max={400} step={100}/>
+        
+        </motion.div>
+
+
+
+
+
+
 
         {extensionOpened && (
           <motion.div
-            className="absolute right-12 opacity-0 bg-transparent"
+            className="absolute right-12 opacity-0 bg-black"
             animate={{ opacity: 100 }}
             transition={{
               delay: 0.5,
@@ -211,12 +299,12 @@ function App() {
       </motion.div>
 
       <motion.div
-        className=" scrollbar-container overflow-hidden bg-transparent pb-4 flex flex-col justify-start items-center overflow-y-auto"
+        className=" scrollbar-container overflow-hidden bg-black pb-4 flex flex-col justify-start items-center overflow-y-auto"
         initial={false}
         animate={{
           minWidth: "100vw",
-          minHeight: animationPlayedOnce ? "80vh" : "0",
-          height: animationPlayedOnce ? "80vh" : "0",
+          minHeight: animationPlayedOnce ? "85vh" : "0",
+          height: animationPlayedOnce ? "85vh" : "0",
           
         }}
         transition={{
@@ -229,8 +317,8 @@ function App() {
   <div className=" rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-black pb-4">
  <TypingAnimation
  startOnView={false}
- duration={0.3}
- className=" text-white w-5/6 text-md font-normal pb-4 bg-black"
+ duration={5}
+ className="font-[Inter] leading-[6rem] text-white w-5/6 text-[.85rem] font-light pt-4 pb-4 bg-black"
 >
  {output}
 </TypingAnimation>
@@ -239,15 +327,33 @@ function App() {
 :
 (
   <div className="w-full flex justify-center items-center overflow-hidden bg-black rounded-sm">
-<div className=" text-white w-5/6 text-md font-normal pb-4 bg-black"
+<div  className="font-[Inter] leading-[6rem] text-white w-5/6 text-[.85rem] font-light pb-4 bg-black"
 >{output}</div>
 </div>
 
 )}
 
 
+
+
+<motion.div
+ className="h-2 w-5/6 border-[1px] border-white/30 border-l-0 border-r-0 border-b-0  "
+ initial={false}
+ animate={{
+  opacity :animationPlayedOnce ? 1 : 0,
+   
+ }}
+ transition={{
+   delay: 2,
+   duration: .5,
+   ease: "easeInOut",
+ }}>
+
+
+</motion.div>
        
       </motion.div>
+      
     </>
   );
 }

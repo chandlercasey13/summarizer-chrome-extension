@@ -28,35 +28,35 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 
 
-const iframe = document.createElement("iframe");
+// const iframe = document.createElement("iframe");
 
-iframe.setAttribute("allowtransparency", "true");
-iframe.style.borderRadius = "5px";
-iframe.style.height = "100vh";
-iframe.style.width = "0px";
-iframe.style.position = "fixed";
-iframe.style.top = "0px";
-iframe.style.right = "0px";
-iframe.style.zIndex = "9999";
-iframe.style.transition = "width 0.25s ease";
-iframe.src = chrome.runtime.getURL("js/index.html");
-iframe.style.overflow = "visible";
-// iframe.style.background = "rgba(255, 255, 255, 0.1)"; // Light translucent white
-// iframe.style.backdropFilter = "blur(10px)"; // Blur effect
-iframe.style.setProperty("color-scheme", "normal", "important");
+// iframe.setAttribute("allowtransparency", "true");
+// iframe.style.borderRadius = "5px";
+// iframe.style.height = "100vh";
+// iframe.style.width = "0px";
+// iframe.style.position = "fixed";
+// iframe.style.top = "0px";
+// iframe.style.right = "0px";
+// iframe.style.zIndex = "9999";
+// iframe.style.transition = "width 0.25s ease";
+// iframe.src = chrome.runtime.getURL("js/index.html");
+// iframe.style.overflow = "visible";
+// // iframe.style.background = "rgba(255, 255, 255, 0.1)"; // Light translucent white
+// // iframe.style.backdropFilter = "blur(10px)"; // Blur effect
+// iframe.style.setProperty("color-scheme", "normal", "important");
 
 
 
-iframe.style.background = "none"
+// iframe.style.background = "none"
 
-iframe.style.border = "none";
+// iframe.style.border = "none";
 
-document.body.appendChild(iframe);
+// document.body.appendChild(iframe);
 
-function toggle() {
-  if (iframe.style.width == "0px") {
-    iframe.style.width = "350px";
-  } else {
-    iframe.style.width = "0px";
-  }
-}
+// function toggle() {
+//   if (iframe.style.width == "0px") {
+//     iframe.style.width = "350px";
+//   } else {
+//     iframe.style.width = "0px";
+//   }
+// }

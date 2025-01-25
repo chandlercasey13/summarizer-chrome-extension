@@ -1,26 +1,26 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Slider from '@mui/material/Slider';
+import * as React from "react"
+import * as SliderPrimitive from "@radix-ui/react-slider"
 
-function valuetext(value: number) {
-  return `${value} words`;
-}
+import { cn } from "../../lib/utils"
 
-export default function DiscreteSlider() {
-  return (
-    <Box sx={{ width: 200 }}>
-     
-      <Slider sx={{
-          color: 'white', // Change the slider track color
-          '& .MuiSlider-thumb': {
-            backgroundColor: 'white', // Change the thumb color
-          },
-          '& .MuiSlider-rail': {
-            backgroundColor: 'gray', // Change the rail color
-          },
-        }}
-defaultValue={200} step={100} marks min={100} max={400}   getAriaValueText={valuetext}
-/>
-    </Box>
-  );
-}
+const Slider = React.forwardRef<
+  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <SliderPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex w-full touch-none select-none items-center bg-white/10",
+      className
+    )}
+    {...props}
+  >
+    <SliderPrimitive.Track className="relative  h-1.5 w-full grow overflow-hidden rounded-full ">
+      <SliderPrimitive.Range className="absolute h-full bg-white" />
+    </SliderPrimitive.Track>
+    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border-[1px] border-white/80 bg-black shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
+  </SliderPrimitive.Root>
+))
+Slider.displayName = SliderPrimitive.Root.displayName
+
+export { Slider }

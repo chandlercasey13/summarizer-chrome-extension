@@ -22,10 +22,11 @@ html{
 body {
   margin: 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: start;
   align-items: center;
   min-width: 100%;
-  min-height: 100%;
+  min-height: 110vh;
  
   
 border-radius: 5px;
