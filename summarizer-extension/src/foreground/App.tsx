@@ -15,33 +15,25 @@ import { ring } from "ldrs";
 
 ring.register();
 
-
 import "../styles/index.css";
 import "../styles/App.css";
 import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
 import { TbCopy } from "react-icons/tb";
-import { Tab } from "@mui/material";
 
 function App() {
   const [output, setOutput] = useState("");
   const [extensionOpened, setExtensionOpened] = useState(false);
-  const[isExtensionOpenedInCurrentTab, setIsExtensionOpenedInCurrentTab] = useState(false);
+  const [isExtensionOpenedInCurrentTab, setIsExtensionOpenedInCurrentTab] =
+    useState(false);
   const [animationPlayedOnce, setAnimationPlayedOnce] = useState(false);
   const [currentActiveTabId, setCurrentActiveTabId] = useState(0);
 
   const [hasTextAnimated, setHasTextAnimated] = useState(false);
 
   useEffect(() => {
-    const port = chrome.runtime.connect({ name: "sidebar" });
-
-    // Optionally, listen for messages from the background
-    port.onMessage.addListener((message) => {
-      console.log("Message from background:", message);
-    });
-
-    // Send a message to the background script
-    port.postMessage({ greeting: "Hello from the sidebar!" });
+    //connect the sidepanel actions to the background
+    chrome.runtime.connect({ name: "sidebar" });
 
     //get currentTab that user is in
     (async () => {
@@ -62,46 +54,30 @@ function App() {
 
     const messageListener = (
       message: any,
-      sender: chrome.runtime.MessageSender,
-      sendResponse: (response?: any) => void
+      sender: chrome.runtime.MessageSender
     ) => {
+      //when press button, toggle extension open, send the current tab back to backgroun
       if (message.type === "EXTENSION_OPENED" && !extensionOpened) {
         setAnimationPlayedOnce(true);
         setExtensionOpened((prev) => !prev);
-        setIsExtensionOpenedInCurrentTab(true);
 
         //this is for telling the background what tab the extension is being opened in
-
-        (async () => {
-          if (!chrome?.tabs?.query) {
-            console.error("Chrome tabs API is not available");
-            return;
-          }
-
-          const [tab] = await chrome.tabs.query({
-            active: true,
-            currentWindow: true,
-          });
-          sendResponse({ status: "success", message: `${tab.id}` });
-        })();
       } else if (message.type === "STREAM_COMPLETE") {
         setOutput(message.data);
 
         //when done with ai response, set cache with tab id and response
       } else if (message.type === "IS_EXTENSION_OPEN_IN_CURRENT_TAB") {
-        setIsExtensionOpenedInCurrentTab(message.data)
-      } 
-      // Optional: Return true to indicate the response will be sent asynchronously
-      return true;
+        setIsExtensionOpenedInCurrentTab(message.data);
+      }
     };
 
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
       setCurrentActiveTabId(activeInfo.tabId);
+      setOutput("");
 
       //if we switch tabs, we want the output state to be the previously cached response
 
-//need a place that stores where all extensions are opened
-
+      //need a place that stores where all extensions are opened
     };
 
     chrome.runtime.onMessage.addListener(messageListener);
@@ -115,8 +91,7 @@ function App() {
 
   //everytime extension is opened or closed
   useEffect(() => {
-
-    //this function allows for extra time when the extension is open, 
+    //this function allows for extra time when the extension is open,
     //and the webpage is still loading
     const sendDomWithRetries = (tabId: number, retries = 3) => {
       chrome.tabs.sendMessage(
@@ -125,52 +100,47 @@ function App() {
         (response) => {
           if (chrome.runtime.lastError) {
             console.error("Error:", chrome.runtime.lastError.message);
-
-            setOutput("boogers1");
-            
-          } else {
-           
-            console.log("Message sent successfully:", response);
-            setOutput('boogers success');
           }
         }
       );
     };
 
-
-
-
-
-    
     //if we pressed the chrome extension
-      //do we have the tab's response cached in the background.ts?
-      chrome.runtime.sendMessage(
-        { type: "TAB_IN_CACHE", data: currentActiveTabId },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.error("Error:", chrome.runtime.lastError.message);
+    //do we have the tab's response cached in the background.ts?
+
+    //need something to ask : is there an extension in this tab im in right NOW?
+
+    chrome.runtime.sendMessage(
+      { type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB", data: currentActiveTabId },
+      (response) => {
+        if (chrome.runtime.lastError) {
+        } else {
+          if (response.booleanresponse === false) {
+            return;
           } else {
-            //if not, send the DOM and get a response
-            if (response.booleanresponse === false) {
-              sendDomWithRetries(currentActiveTabId);
-            } else {
-              //ensures text only animates when the response is NOT in cache
-              setHasTextAnimated(true);
-              setOutput(response.data);
-            }
+            chrome.runtime.sendMessage(
+              { type: "IS_TAB_IN_CACHE", data: currentActiveTabId },
+              (response) => {
+                if (chrome.runtime.lastError) {
+                  console.error("Error:", chrome.runtime.lastError.message);
+                } else {
+                  //if not, send the DOM and get a response
+                  if (response.booleanresponse === false) {
+                    sendDomWithRetries(currentActiveTabId);
+                  } else {
+                    //ensures text only animates when the response is NOT in cache
+                    setHasTextAnimated(true);
+                    //setOutput(`${isExtensionOpenedInCurrentTab}`)
+                    setOutput(response.data);
+                  }
+                }
+              }
+            );
           }
         }
-      );
-    
-
-
-
-
-
-
-
-
-  }, [ isExtensionOpenedInCurrentTab]);
+      }
+    );
+  }, [currentActiveTabId, extensionOpened]);
 
   return (
     <>
@@ -330,11 +300,15 @@ function App() {
               <l-quantum size="60" speed="1.75" color="white"></l-quantum>
             </div>
           )
-        ) : (
+        ) : output ? (
           <div className="w-full flex justify-center items-center overflow-hidden bg-black rounded-sm">
             <div className="font-[Inter]  text-white w-5/6 text-[.85rem] font-light pt-5 pb-4 bg-black">
               {output}
             </div>
+          </div>
+        ) : (
+          <div className="h-[80%] w-full  flex justify-center items-center">
+            <l-quantum size="60" speed="1.75" color="white"></l-quantum>
           </div>
         )}
 

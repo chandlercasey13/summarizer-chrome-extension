@@ -1,126 +1,85 @@
-import { tabResponseCache } from "./tabResponsesCache";
-
+const tabResponseCache: Map<number, string> = new Map();
 const currentTabsWithExtensionOpened: Map<number, boolean> = new Map();
 
-
-
 let currentTab: number;
-// let currentPanelTabId: number;
 
-// get the very first tab the user loads into with fresh chrome window
-(async () => {
-  if (!chrome?.tabs?.query) {
-    console.error("Chrome tabs API is not available");
-    return;
-  }
-
-  const [tab] = await chrome.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
-
-  if (tab.id) {
-   
-
-    currentTab = tab.id;
-  }
-})();
-
+//send extension open message to app.tsx
+function notifyExtensionOpened() {
+  chrome.runtime.sendMessage({ type: "EXTENSION_OPENED" });
+  currentTabsWithExtensionOpened.set(currentTab, true);
+ 
+}
 
 //onconnect is how we know if the extension is open
 
-chrome.runtime.onConnect.addListener((port) => {
- 
-//send extension open message to app.tsx
-  chrome.runtime.sendMessage({ type: "EXTENSION_OPENED" }, (response) => {
-    if (chrome.runtime.lastError) {
-      console.error("Error:", chrome.runtime.lastError.message);
-    } else {
+chrome.runtime.onConnect.addListener(handleConnect);
 
-      if (currentTab) {
-        
-        currentTab = parseInt(response.message)
-        currentTabsWithExtensionOpened.set(currentTab, true)
-     
-      }
-      
-     
+chrome.tabs.onUpdated.addListener(
+  async (tabId) => await handleOpenSidePanel(tabId)
+);
 
+chrome.tabs.onActivated.addListener(handleTabActivation);
 
-     
-     
-    }
-  });
+chrome.tabs.onRemoved.addListener(handleTabRemoval);
 
+chrome.runtime.onMessage.addListener(handleIncomingMessages);
 
- //extension close listener
+function handleConnect(port: chrome.runtime.Port) {
+  notifyExtensionOpened();
   port.onDisconnect.addListener(() => {
     if (currentTab) {
-      
-      currentTabsWithExtensionOpened.delete(currentTab)
-    
+      currentTabsWithExtensionOpened.delete(currentTab);
     }
-    
-   
   });
-});
-
+}
 
 //this allows the toggle of sidepanel when clicking on extension button
-chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
- 
-  
-    await chrome.sidePanel.setOptions({
-      tabId,
-      path: "js/index.html",
-      enabled: true,
-    
-    })
-});
+async function handleOpenSidePanel(tabId: number) {
+  await chrome.sidePanel.setOptions({
+    tabId,
+    path: "js/index.html",
+    enabled: true,
+  });
+}
 
 //this deactivates side panel for the specific tab when swapping out of that tab
 
-chrome.tabs.onActivated.addListener((activeInfo) => {
- 
-    currentTab = activeInfo.tabId;
+function handleTabActivation(activeInfo: chrome.tabs.TabActiveInfo) {
+  currentTab = activeInfo.tabId;
 
-    if (currentTab && currentTab !== activeInfo.tabId) {
-      
-      chrome.sidePanel.setOptions({
-        tabId: currentTab,
-        enabled: false,
-      });
-    }
+  if (currentTab && currentTab !== activeInfo.tabId) {
+    chrome.sidePanel.setOptions({
+      tabId: currentTab,
+      enabled: false,
+    });
+  }
 
-
+  chrome.runtime.sendMessage(
+    {
+      type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB",
+      data: currentTabsWithExtensionOpened.has(activeInfo.tabId),
+    },
     
-      chrome.runtime.sendMessage({ type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB", data:currentTabsWithExtensionOpened.has(activeInfo.tabId) }, 
-        (response) => {})
-        console.log('is extension opened in this tab', currentTabsWithExtensionOpened.has(activeInfo.tabId))
-     
-      
-   
-    
-
-});
-
+  );
+}
 
 //if tab is deleted, response is removed from cache
-chrome.tabs.onRemoved.addListener((tabId) => {
+function handleTabRemoval(tabId: number) {
   if (tabResponseCache.has(tabId)) {
     tabResponseCache.delete(tabId);
-
   }
-  if (currentTabsWithExtensionOpened.has(tabId)){
-    currentTabsWithExtensionOpened.delete(tabId)
+  if (currentTabsWithExtensionOpened.has(tabId)) {
     
+
+    currentTabsWithExtensionOpened.delete(tabId);
   }
-  })
+}
 
-
-
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+function handleIncomingMessages(
+  message: any,
+  sender: chrome.runtime.MessageSender,
+  sendResponse: (response?: any) => void
+): true | undefined {
   //if we're sending a message to send the dom content, and the tab we're requesting
   //isn't already in our cache
 
@@ -152,18 +111,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
               tabResponseCache.set(currentTab, fullText);
 
-             
-
               sendResponse({ status: "Success", data: fullText });
               return;
             }
 
             const chunkText = decoder.decode(value, { stream: true });
             fullText += chunkText;
-            chrome.runtime.sendMessage({
-              type: "STREAM_CHUNK",
-              data: chunkText,
-            });
+            
 
             return readStream();
           });
@@ -179,21 +133,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === "TAB_IN_CACHE") {
-    console.log('checking cache')
-    console.log(tabResponseCache)
-    console.log(message.data)
-    console.log(currentTab)
+  if (message.type === "IS_EXTENSION_OPEN_IN_CURRENT_TAB") {
+    
+
+    if (currentTabsWithExtensionOpened.has(message.data)) {
+      sendResponse({
+        booleanresponse: true,
+        data: currentTabsWithExtensionOpened.get(message.data),
+      });
+    } else {
+      sendResponse({ booleanresponse: false, data: null });
+    }
+  }
+
+  if (message.type === "IS_TAB_IN_CACHE") {
     if (tabResponseCache.has(message.data)) {
-   console.log('is in cache')
       sendResponse({
         booleanresponse: true,
         data: tabResponseCache.get(message.data),
       });
     } else {
       sendResponse({ booleanresponse: false, data: null });
-      console.log('is not in  cache')
     }
     return true;
   }
-});
+}
