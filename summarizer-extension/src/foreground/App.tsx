@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
 import { Slider } from "../components/ui/slider";
-
+import CopyButton from "../components/ui/copy-button";
 lineWobble.register();
 
 import { quantum } from "ldrs";
@@ -218,13 +218,8 @@ function App() {
               ease: "easeInOut",
             }}
           >
-            <button className=" font-[Inter] flex justify-center items-center text-white font-light w-full h-full ">
-              <TbCopy
-                className="flex items-center w-full h-full"
-                color="white"
-              ></TbCopy>
-              Copy
-            </button>
+           {output && (<CopyButton textToCopy={output}/>)}
+            
           </motion.div>
         </motion.div>
 
