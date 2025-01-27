@@ -11,7 +11,11 @@ interface CopyButtonProps {
 const CopyButton: React.FC<CopyButtonProps> = ({ textToCopy }) => {
   const [copyMessage, setCopyMessage] =useState('Copy')
   const handleCopy = () => {
-setCopyMessage('Copied')
+setCopyMessage('Copied!')
+
+setTimeout(()=>{
+  setCopyMessage('Copy')
+},2000)
     navigator.clipboard
       .writeText(textToCopy)
      
@@ -20,7 +24,7 @@ setCopyMessage('Copied')
   return (
     <button
       onClick={handleCopy}
-      className="font-[Inter] flex justify-center items-center text-white font-light w-full h-full"
+      className="font-[Inter] flex justify-center gap-1 items-center text-white font-light w-full h-full"
     >
       <TbCopy className="flex items-center w-full h-full" color="white" />
       {copyMessage}

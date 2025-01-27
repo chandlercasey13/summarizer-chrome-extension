@@ -24,8 +24,33 @@ chrome.tabs.onRemoved.addListener(handleTabRemoval);
 
 chrome.runtime.onMessage.addListener(handleIncomingMessages);
 
+
 function handleConnect(port: chrome.runtime.Port) {
   notifyExtensionOpened();
+
+  (async () => {
+    if (!chrome?.tabs?.query) {
+      console.error("Chrome tabs API is not available");
+      return;
+    }
+  
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+  
+    if (tab.id) {
+     
+  
+      currentTab = tab.id
+    }
+  })()
+
+
+
+
+
+
   port.onDisconnect.addListener(() => {
     if (currentTab) {
       currentTabsWithExtensionOpened.delete(currentTab);
