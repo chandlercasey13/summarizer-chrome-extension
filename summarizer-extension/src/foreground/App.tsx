@@ -3,6 +3,7 @@ import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
 import { Slider } from "../components/ui/slider";
 import CopyButton from "../components/ui/copy-button";
+
 lineWobble.register();
 
 import { quantum } from "ldrs";
@@ -90,6 +91,10 @@ function App() {
   }, []);
 
   //everytime extension is opened or closed
+
+  let timeoutId: any;
+
+
   useEffect(() => {
     //this function allows for extra time when the extension is open,
     //and the webpage is still loading
@@ -109,6 +114,20 @@ function App() {
     //do we have the tab's response cached in the background.ts?
 
     //need something to ask : is there an extension in this tab im in right NOW?
+
+
+
+
+  clearTimeout(timeoutId)
+  setOutput('')
+  
+
+
+
+
+
+  timeoutId = setTimeout(()=> {
+
 
     chrome.runtime.sendMessage(
       { type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB", data: currentActiveTabId },
@@ -140,15 +159,23 @@ function App() {
         }
       }
     );
+
+  }, 500)
+
+
+
+
+
   }, [currentActiveTabId, extensionOpened]);
 
   return (
     <>
       <motion.div
-        className="relative flex flex-col justify-center items-center bg-black"
+        className="relative flex flex-col justify-center items-center bg-black w-full px-[1.6rem]"
         initial={false}
         animate={{
           minHeight: animationPlayedOnce ? "15vh" : "100vh",
+         
         }}
         transition={{
           delay: 1,
@@ -157,14 +184,15 @@ function App() {
         }}
       >
         <motion.div
-          className=" bg-transparent absolute -top-2  h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
+          className=" bg-transparent absolute -top-3  h-full w-full  flex justify-center items-center   overflow-x-hidden overflow-y-hidden  "
           style={{
             margin: "0 auto",
           }}
           initial={false}
           animate={{
-            scale: animationPlayedOnce ? 0.4 : 1,
-            left: animationPlayedOnce ? -125 : 0,
+            scale: animationPlayedOnce ? 1 : 1,
+            left: animationPlayedOnce ? -25 : 0,
+            
           }}
           transition={{
             delay: 1,
@@ -172,13 +200,15 @@ function App() {
             ease: "easeInOut",
           }}
         >
+          //w-10rem
           <motion.div
-            className="flex w-[10rem] h-[4rem] bg-transparent  justify-center items-center overflow-hidden  "
+            className=" relative flex w-1/2 h-full bg-transparent justify-start items-center  "
             initial={false}
             animate={{
               marginBottom: animationPlayedOnce ? "0rem" : ".5rem",
-              width: animationPlayedOnce ? "10rem" : "10rem",
-              height: animationPlayedOnce ? "10rem" : "6rem",
+              width: animationPlayedOnce ? "50%" : "auto",
+              minWidth: "4rem"
+              // height: animationPlayedOnce ? "3rem" : "6rem",
             }}
             transition={{
               delay: 1,
@@ -186,45 +216,69 @@ function App() {
               ease: "easeInOut",
             }}
           >
+          <motion.div className=" absolute left-0 w-[3rem] h-[4rem] overflow-hidden"
+           initial={false}
+           animate={{
+             width: animationPlayedOnce ? "3rem" : "6rem",
+             height: animationPlayedOnce ? "4rem" : "6rem",
+           }}
+           transition={{
+             delay: 1,
+             duration: 1,
+             ease: "easeInOut",
+           }}>
+
             <IoCrop className="w-full h-full overflow-hidden" color="white" />
+          
           </motion.div>
+          </motion.div>
+
+
+          //w-4.5rem 
+          <motion.div
+            className=" relative flex w-1/2 h-[2.5rem]  text-md  text-white justify-end items-center overflow-hidden rounded-md p-1    "
+            initial={false}
+            animate={{
+              opacity: animationPlayedOnce ? 1 : 0,
+              width: animationPlayedOnce ? "50%" : "0%",
+            }}
+            transition={{
+              delay: 1,
+              duration: 1,
+              ease: "easeInOut",
+            }}
+          >
+           <CopyButton textToCopy={output}/>
+          
+            
+          </motion.div>
+
         </motion.div>
 
         <motion.div
-          className=" bg-transparent absolute -top-2 h-full w-full flex flex-col justify-center items-center overflow-x-hidden overflow-y-auto pointer-events-auto "
+          className=" bg-transparent absolute -top-3 h-full w-full flex  justify-end items-center overflow-x-hidden overflow-y-auto  "
           style={{
             margin: "0 auto",
           }}
           initial={false}
-          animate={{
-            scale: animationPlayedOnce ? 1 : 1,
-            right: -110,
-          }}
+         
           transition={{
             delay: 1,
             duration: 1,
             ease: "easeInOut",
           }}
         >
-          <motion.div
-            className="flex w-[4.5rem] h-[1.75rem]  text-md bg-transparent text-white justify-center items-center overflow-hidden rounded-md p-1 pr-2  hover:bg-white/50   "
-            initial={false}
-            animate={{
-              opacity: animationPlayedOnce ? 1 : 0,
-            }}
-            transition={{
-              delay: 2,
-              duration: 0.5,
-              ease: "easeInOut",
-            }}
-          >
-           {output && (<CopyButton textToCopy={output}/>)}
-            
-          </motion.div>
+
+
+
+
+
+
+
         </motion.div>
 
         <motion.div
-          className=" text-white font-extralight absolute bottom-1 w-5/6 flex flex-col items-center justify-center  "
+          className=" text-white font-extralight absolute bottom-1 px-[1.6rem] w-full flex flex-col items-center justify-center  "
           initial={false}
           animate={{
             opacity: animationPlayedOnce ? 1 : 0,
@@ -252,7 +306,7 @@ function App() {
           />
         </motion.div>
 
-        {extensionOpened && (
+        {/* {extensionOpened && (
           <motion.div
             className="absolute right-12 opacity-0 bg-black"
             animate={{ opacity: 100 }}
@@ -262,14 +316,14 @@ function App() {
               ease: "easeInOut",
             }}
           ></motion.div>
-        )}
+        )} */}
       </motion.div>
 
       <motion.div
-        className=" scrollbar-container overflow-hidden bg-black pb-4 flex flex-col justify-start items-center overflow-y-auto"
+        className=" scrollbar-container overflow-hidden bg-transparent pb-4  px-[1.6rem] flex flex-col justify-start items-center overflow-y-auto"
         initial={false}
         animate={{
-          minWidth: "100vw",
+          minWidth: "100%",
           minHeight: animationPlayedOnce ? "85vh" : "0",
           height: animationPlayedOnce ? "85vh" : "0",
         }}
@@ -281,11 +335,11 @@ function App() {
       >
         {!hasTextAnimated ? (
           output ? (
-            <div className=" rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-black pb-4">
+            <div className=" rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-transparent pb-4">
               <TypingAnimation
                 startOnView={false}
                 duration={5}
-                className="font-[Inter]  text-white w-5/6 min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-black"
+                className="font-[Inter]  text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-transparent"
               >
                 {output}
               </TypingAnimation>
@@ -296,8 +350,8 @@ function App() {
             </div>
           )
         ) : output ? (
-          <div className="w-full flex justify-center items-center overflow-hidden bg-black rounded-sm">
-            <div className="font-[Inter]  text-white w-5/6 text-[.85rem] font-light pt-5 pb-4 bg-black">
+          <div className="rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-transparent pb-4">
+            <div className="font-[Inter]  text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-transparent">
               {output}
             </div>
           </div>
@@ -307,7 +361,7 @@ function App() {
           </div>
         )}
 
-        {output && (
+        {/* {output && (
           <motion.div
             className="h-2 w-5/6 border-[1px] border-white/30 border-l-0 border-r-0 border-b-0  "
             initial={false}
@@ -324,7 +378,7 @@ function App() {
               This summary is 50% shorter than the original text
             </p>
           </motion.div>
-        )}
+        )} */}
       </motion.div>
     </>
   );

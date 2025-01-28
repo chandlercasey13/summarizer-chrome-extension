@@ -6,31 +6,32 @@
 /* ... */
 
 *{
-  background:none
+  
 }
 
 
 html{
-  background: none !important;
+
 }
 
 
 .container {
-  background: none !important;
+ height: 100%;
+ width: 100%;
 }
 
 body {
   margin: 0;
   display: flex;
   flex-direction: column;
-  justify-content: start;
+  justify-content: center;
   align-items: center;
-  min-width: 100%;
-  min-height: 110vh;
- 
+  min-width: 100vw;
+  min-height: 100vh;
+  background: black;
   
 border-radius: 5px;
- background: none !important;
+
 
  overflow: hidden;
 }
