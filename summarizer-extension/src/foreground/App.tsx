@@ -175,6 +175,7 @@ function App() {
         initial={false}
         animate={{
           minHeight: animationPlayedOnce ? "15vh" : "100vh",
+          
          
         }}
         transition={{

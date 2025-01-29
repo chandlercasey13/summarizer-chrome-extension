@@ -3,12 +3,7 @@ const currentTabsWithExtensionOpened: Map<number, boolean> = new Map();
 
 let currentTab: number;
 
-//send extension open message to app.tsx
-function notifyExtensionOpened() {
-  chrome.runtime.sendMessage({ type: "EXTENSION_OPENED" });
-  currentTabsWithExtensionOpened.set(currentTab, true);
- 
-}
+
 
 //onconnect is how we know if the extension is open
 
@@ -25,15 +20,16 @@ chrome.tabs.onRemoved.addListener(handleTabRemoval);
 chrome.runtime.onMessage.addListener(handleIncomingMessages);
 
 
-function handleConnect(port: chrome.runtime.Port) {
-  notifyExtensionOpened();
+async function handleConnect(port: chrome.runtime.Port) {
+ 
 
-  (async () => {
+ await (async () => {
+    
     if (!chrome?.tabs?.query) {
       console.error("Chrome tabs API is not available");
       return;
     }
-  
+   
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
@@ -41,12 +37,12 @@ function handleConnect(port: chrome.runtime.Port) {
   
     if (tab.id) {
      
-  
+ 
       currentTab = tab.id
     }
   })()
 
-
+  notifyExtensionOpened();
 
 
 
@@ -57,6 +53,22 @@ function handleConnect(port: chrome.runtime.Port) {
     }
   });
 }
+
+
+
+
+//send extension open message to app.tsx
+function notifyExtensionOpened() {
+  chrome.runtime.sendMessage({ type: "EXTENSION_OPENED" });
+  
+  currentTabsWithExtensionOpened.set(currentTab, true);
+ 
+}
+
+
+
+
+
 
 //this allows the toggle of sidepanel when clicking on extension button
 async function handleOpenSidePanel(tabId: number) {
@@ -159,9 +171,12 @@ function handleIncomingMessages(
   }
 
   if (message.type === "IS_EXTENSION_OPEN_IN_CURRENT_TAB") {
-    
-
+   
+    console.log('message', message.data)
+    console.log(currentTabsWithExtensionOpened)
+    console.log(currentTabsWithExtensionOpened.get(message.data))
     if (currentTabsWithExtensionOpened.has(message.data)) {
+      console.log('has')
       sendResponse({
         booleanresponse: true,
         data: currentTabsWithExtensionOpened.get(message.data),
@@ -172,6 +187,7 @@ function handleIncomingMessages(
   }
 
   if (message.type === "IS_TAB_IN_CACHE") {
+    
     if (tabResponseCache.has(message.data)) {
       sendResponse({
         booleanresponse: true,
