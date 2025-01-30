@@ -7,9 +7,10 @@ import { MdOutlineRestartAlt } from "react-icons/md";
 
 interface CopyButtonProps {
   textToCopy: string; 
+  handleResetSummary: () => void;
 }
 
-const CopyButton: React.FC<CopyButtonProps> = ({ textToCopy }) => {
+const CopyButton: React.FC<CopyButtonProps> = ({ textToCopy, handleResetSummary }) => {
   const [copyMessage, setCopyMessage] =useState('Copy')
   const handleCopy = () => {
 setCopyMessage('Copied!')
@@ -32,7 +33,9 @@ setTimeout(()=>{
     
       
     </button>
-    <button className="font-[Inter] bg-transparent flex  justify-center  items-center h-full w-10 text-white font-light z-50    rounded-lg hover:bg-white/50"> 
+    <button
+    onClick={handleResetSummary}
+    className="font-[Inter] bg-transparent flex  justify-center  items-center h-full w-10 text-white font-light z-50    rounded-lg hover:bg-white/50"> 
        <MdOutlineRestartAlt className="w-[1.25rem] h-[1.25rem] "/>
        </button>
     </div>

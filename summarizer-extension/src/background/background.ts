@@ -237,4 +237,22 @@ console.log(tabResponseCache)
     }
     return true;
   }
+
+  if (message.type === "DELETE_TAB_IN_CACHE") {
+    if (tabResponseCache.has(message.data)) {
+     tabResponseCache.delete(message.data)
+console.log(tabResponseCache)
+
+    }
+
+
+
+  }
+
+  
+
+
+
+
+
 }

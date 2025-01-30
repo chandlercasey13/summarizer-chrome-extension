@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { lineWobble } from "ldrs";
 import { IoCrop } from "react-icons/io5";
 import { Slider } from "../components/ui/slider";
-import CopyButton from "../components/ui/copy-button";
+import CopyButton from "../components/ui/utility-buttons";
 
 lineWobble.register();
 
@@ -33,6 +33,47 @@ function App() {
 
   
   const [hasTextAnimated, setHasTextAnimated] = useState(false);
+
+
+
+
+const handleResetSummary= function() {
+setHasTextAnimated(false)
+setOutput('')
+
+//delete entry in cache
+chrome.runtime.sendMessage(
+  { type: "DELETE_TAB_IN_CACHE", data: currentActiveTabId, length:sliderValue[0]},
+  // (response) => {
+    
+  //   if (chrome.runtime.lastError) {
+  //     console.error("Error:", chrome.runtime.lastError.message);
+     
+  //   } else {
+  //     //if not, send the DOM and get a response
+  //     if (response.booleanresponse === false) {
+       
+  //       sendDomWithRetries(currentActiveTabId, sliderValue[0]);
+  //     } else {
+  //       //ensures text only animates when the response is NOT in cache
+  //       setHasTextAnimated(true);
+  //       //setOutput(`${isExtensionOpenedInCurrentTab}`)
+  //       setOutput(response.data);
+  //     }
+  //   }
+  // }
+);
+
+setExtensionToggle((prev)=> !prev)
+
+
+
+
+}
+
+
+
+
 
   useEffect(() => {
     //connect the sidepanel actions to the background
@@ -254,7 +295,7 @@ useEffect(()=> {
               ease: "easeInOut",
             }}
           >
-           <CopyButton textToCopy={output}/>
+           <CopyButton textToCopy={output} handleResetSummary={handleResetSummary}/>
           
             
           </motion.div>
