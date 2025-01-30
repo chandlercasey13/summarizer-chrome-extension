@@ -24,12 +24,14 @@ import { TbCopy } from "react-icons/tb";
 
 function App() {
   const [output, setOutput] = useState("");
-  const [extensionOpened, setExtensionOpened] = useState(false);
+  const [extensionToggle, setExtensionToggle] = useState(false);
   const [isExtensionOpenedInCurrentTab, setIsExtensionOpenedInCurrentTab] =
     useState(false);
   const [animationPlayedOnce, setAnimationPlayedOnce] = useState(false);
   const [currentActiveTabId, setCurrentActiveTabId] = useState(0);
+  const [sliderValue, setSliderValue] = useState([100]); // Store the slider value
 
+  
   const [hasTextAnimated, setHasTextAnimated] = useState(false);
 
   useEffect(() => {
@@ -58,9 +60,9 @@ function App() {
       sender: chrome.runtime.MessageSender
     ) => {
       //when press button, toggle extension open, send the current tab back to backgroun
-      if (message.type === "EXTENSION_OPENED" && !extensionOpened) {
+      if (message.type === "EXTENSION_OPENED") {
         setAnimationPlayedOnce(true);
-        setExtensionOpened((prev) => !prev);
+        setCurrentActiveTabId(message.tab)
 
         //this is for telling the background what tab the extension is being opened in
       } else if (message.type === "STREAM_COMPLETE") {
@@ -95,37 +97,53 @@ function App() {
   let timeoutId: any;
 
 
-  useEffect(() => {
-    //this function allows for extra time when the extension is open,
-    //and the webpage is still loading
-    const sendDomWithRetries = (tabId: number, retries = 3) => {
-      chrome.tabs.sendMessage(
-        tabId,
-        { type: "SEND_DOM", payload: "Request to fetch DOM" },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            console.error("Error:", chrome.runtime.lastError.message);
-          }
+  const sendDomWithRetries = (tabId: number, length:number, retries = 3) => {
+    chrome.tabs.sendMessage(
+      tabId,
+      { type: "SEND_DOM", length:length },
+      (response) => {
+        if (chrome.runtime.lastError) {
+          console.error("Error:", chrome.runtime.lastError.message);
         }
-      );
-    };
-
-    //if we pressed the chrome extension
-    //do we have the tab's response cached in the background.ts?
-
-    //need something to ask : is there an extension in this tab im in right NOW?
+      }
+    );
+  };
 
 
 
 
+useEffect(()=> {
+
+
+  chrome.runtime.sendMessage(
+    { type: "IS_TAB_IN_CACHE", data: currentActiveTabId, length:sliderValue[0]},
+    (response) => {
+      
+      if (chrome.runtime.lastError) {
+        console.error("Error:", chrome.runtime.lastError.message);
+       
+      } else {
+        //if not, send the DOM and get a response
+        if (response.booleanresponse === false) {
+         
+          sendDomWithRetries(currentActiveTabId, sliderValue[0]);
+        } else {
+          //ensures text only animates when the response is NOT in cache
+          setHasTextAnimated(true);
+          //setOutput(`${isExtensionOpenedInCurrentTab}`)
+          setOutput(response.data);
+        }
+      }
+    }
+  );
+
+}, [extensionToggle])
+
+  useEffect(() => {
+   
   clearTimeout(timeoutId)
   setOutput('')
   
-
-
-
-
-
   timeoutId = setTimeout(()=> {
 
 
@@ -137,24 +155,8 @@ function App() {
           if (response.booleanresponse === false) {
             return;
           } else {
-            chrome.runtime.sendMessage(
-              { type: "IS_TAB_IN_CACHE", data: currentActiveTabId },
-              (response) => {
-                if (chrome.runtime.lastError) {
-                  console.error("Error:", chrome.runtime.lastError.message);
-                } else {
-                  //if not, send the DOM and get a response
-                  if (response.booleanresponse === false) {
-                    sendDomWithRetries(currentActiveTabId);
-                  } else {
-                    //ensures text only animates when the response is NOT in cache
-                    setHasTextAnimated(true);
-                    //setOutput(`${isExtensionOpenedInCurrentTab}`)
-                    setOutput(response.data);
-                  }
-                }
-              }
-            );
+            setExtensionToggle((prev) => !prev);
+
           }
         }
       }
@@ -162,11 +164,14 @@ function App() {
 
   }, 500)
 
+  return () => {
+    if (timeoutId.current) clearTimeout(timeoutId.current);
+  };
 
+  }, [currentActiveTabId, sliderValue]);
 
-
-
-  }, [currentActiveTabId, extensionOpened]);
+  //set current active within that useeffect, IF extension is open in tab , then set state of extension opened, 
+  // that will set another useeffect that then retrieve
 
   return (
     <>
@@ -304,6 +309,8 @@ function App() {
             defaultValue={[100]}
             max={300}
             step={100}
+            value = {sliderValue}
+            onValueChange={setSliderValue}
           />
         </motion.div>
 
