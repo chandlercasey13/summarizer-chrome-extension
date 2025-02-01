@@ -134,12 +134,11 @@ function handleIncomingMessages(
 ): true | undefined {
   
   // if we're sending a message to send the DOM content, and the tab we're requesting isn't already in our cache
- console.log(message.type)
 
  try{
  
   if (message.type === "DOM_CONTENT") {
-    console.log("sending DOM");
+
    
     const domContent = message.payload;
     
@@ -183,7 +182,6 @@ function handleIncomingMessages(
        
 tabResponseCache.get(currentTab)!.set(message.length, fullText);
 
-console.log(tabResponseCache)
               sendResponse({ status: "Success", data: fullText });
               return;
             }
@@ -225,8 +223,7 @@ console.log(tabResponseCache)
 
  
     if (tabResponseCache.get(message.data)?.has(message.length)) {
-     console.log('length', message.length)
-      console.log(tabResponseCache.get(message.data)?.get(message.length)) 
+    
       sendResponse({
         booleanresponse: true,
         data: tabResponseCache.get(message.data)?.get(message.length),
@@ -241,7 +238,7 @@ console.log(tabResponseCache)
   if (message.type === "DELETE_TAB_IN_CACHE") {
     if (tabResponseCache.has(message.data)) {
      tabResponseCache.delete(message.data)
-console.log(tabResponseCache)
+
 
     }
 

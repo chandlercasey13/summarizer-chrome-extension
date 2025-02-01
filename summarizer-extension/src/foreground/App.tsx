@@ -1,32 +1,26 @@
 import { useState, useEffect } from "react";
-import { lineWobble } from "ldrs";
+
 import { IoCrop } from "react-icons/io5";
 import { Slider } from "../components/ui/slider";
 import CopyButton from "../components/ui/utility-buttons";
 
-lineWobble.register();
+
 
 import { quantum } from "ldrs";
 
 quantum.register();
 
-// Default values shown
-
-import { ring } from "ldrs";
-
-ring.register();
 
 import "../styles/index.css";
 import "../styles/App.css";
 import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
-import { TbCopy } from "react-icons/tb";
+
 
 function App() {
   const [output, setOutput] = useState("");
   const [extensionToggle, setExtensionToggle] = useState(false);
-  const [isExtensionOpenedInCurrentTab, setIsExtensionOpenedInCurrentTab] =
-    useState(false);
+ 
   const [animationPlayedOnce, setAnimationPlayedOnce] = useState(false);
   const [currentActiveTabId, setCurrentActiveTabId] = useState(0);
   const [sliderValue, setSliderValue] = useState([100]); // Store the slider value
@@ -44,24 +38,7 @@ setOutput('')
 //delete entry in cache
 chrome.runtime.sendMessage(
   { type: "DELETE_TAB_IN_CACHE", data: currentActiveTabId, length:sliderValue[0]},
-  // (response) => {
-    
-  //   if (chrome.runtime.lastError) {
-  //     console.error("Error:", chrome.runtime.lastError.message);
-     
-  //   } else {
-  //     //if not, send the DOM and get a response
-  //     if (response.booleanresponse === false) {
-       
-  //       sendDomWithRetries(currentActiveTabId, sliderValue[0]);
-  //     } else {
-  //       //ensures text only animates when the response is NOT in cache
-  //       setHasTextAnimated(true);
-  //       //setOutput(`${isExtensionOpenedInCurrentTab}`)
-  //       setOutput(response.data);
-  //     }
-  //   }
-  // }
+ 
 );
 
 setExtensionToggle((prev)=> !prev)
@@ -110,9 +87,7 @@ setExtensionToggle((prev)=> !prev)
         setOutput(message.data);
 
         //when done with ai response, set cache with tab id and response
-      } else if (message.type === "IS_EXTENSION_OPEN_IN_CURRENT_TAB") {
-        setIsExtensionOpenedInCurrentTab(message.data);
-      }
+      } 
     };
 
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
@@ -171,7 +146,7 @@ useEffect(()=> {
         } else {
           //ensures text only animates when the response is NOT in cache
           setHasTextAnimated(true);
-          //setOutput(`${isExtensionOpenedInCurrentTab}`)
+      
           setOutput(response.data);
         }
       }
@@ -221,8 +196,6 @@ useEffect(()=> {
         initial={false}
         animate={{
           minHeight: animationPlayedOnce ? "15vh" : "100vh",
-          
-         
         }}
         transition={{
           delay: 1,
@@ -249,13 +222,13 @@ useEffect(()=> {
         >
           //w-10rem
           <motion.div
-            className=" relative flex w-1/2 h-full bg-transparent justify-start items-center  "
+            className=" relative flex w-full h-full bg-transparent justify-start items-center  "
             initial={false}
             animate={{
               marginBottom: animationPlayedOnce ? "0rem" : ".5rem",
               width: animationPlayedOnce ? "50%" : "auto",
               minWidth: "4rem"
-              // height: animationPlayedOnce ? "3rem" : "6rem",
+             
             }}
             transition={{
               delay: 1,
@@ -263,11 +236,12 @@ useEffect(()=> {
               ease: "easeInOut",
             }}
           >
-          <motion.div className=" absolute left-0 w-[3rem] h-[4rem] overflow-hidden"
+          <motion.div className=" absolute flex justify-center items-center  w-[3rem] h-[4rem] overflow-hidden"
            initial={false}
            animate={{
-             width: animationPlayedOnce ? "3rem" : "6rem",
+             width: animationPlayedOnce ? "3rem" : "8rem",
              height: animationPlayedOnce ? "4rem" : "6rem",
+             left: animationPlayedOnce ? "none" : "-3rem",
            }}
            transition={{
              delay: 1,
@@ -275,13 +249,13 @@ useEffect(()=> {
              ease: "easeInOut",
            }}>
 
-            <IoCrop className="w-full h-full overflow-hidden" color="white" />
+            <IoCrop className=" relative w-full h-full overflow-hidden" color="white" />
           
           </motion.div>
           </motion.div>
 
 
-          //w-4.5rem 
+        
           <motion.div
             className=" relative flex w-1/2 h-[2.5rem]  text-md  text-white justify-end items-center overflow-hidden rounded-md p-1    "
             initial={false}
@@ -355,17 +329,7 @@ useEffect(()=> {
           />
         </motion.div>
 
-        {/* {extensionOpened && (
-          <motion.div
-            className="absolute right-12 opacity-0 bg-black"
-            animate={{ opacity: 100 }}
-            transition={{
-              delay: 0.5,
-              duration: 1,
-              ease: "easeInOut",
-            }}
-          ></motion.div>
-        )} */}
+      
       </motion.div>
 
       <motion.div
@@ -410,15 +374,15 @@ useEffect(()=> {
           </div>
         )}
 
-        {/* {output && (
+{/*       
           <motion.div
-            className="h-2 w-5/6 border-[1px] border-white/30 border-l-0 border-r-0 border-b-0  "
-            initial={false}
+            className="h-2 w-full border-[1px] border-white/30 border-l-0 border-r-0 border-b-0  "
+            initial={{ opacity: 0 }}
             animate={{
-              opacity: output ? 1 : 0,
+              opacity: output? 1:0,
             }}
             transition={{
-              delay: 0,
+              delay: 2,
               duration: 2,
               ease: "easeInOut",
             }}
@@ -426,8 +390,8 @@ useEffect(()=> {
             <p className=" text-center text-white/30 mt-1 font-light ">
               This summary is 50% shorter than the original text
             </p>
-          </motion.div>
-        )} */}
+          </motion.div> */}
+   
       </motion.div>
     </>
   );
