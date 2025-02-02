@@ -111,13 +111,13 @@ const defaultItemAnimationVariants: Record<
         y: 0,
         transition: {
           delay,
-          duration: 0.3,
+          duration: 0.1,
         },
       }),
       exit: {
         opacity: 0,
         y: 20,
-        transition: { duration: 0.3 },
+        transition: { duration: 0.1 },
       },
     },
   },
@@ -312,8 +312,9 @@ export function TextAnimate({
   once = false,
   by = "word",
   animation = "fadeIn",
+  onComplete,
   ...props
-}: TextAnimateProps) {
+}: TextAnimateProps & { onComplete?: () => void }) {
   const MotionComponent = motion.create(Component);
 
   // Use provided variants or default variants based on animation type
@@ -365,6 +366,9 @@ export function TextAnimate({
         animate={startOnView ? undefined : "show"}
         exit="exit"
         className={cn("whitespace-pre-wrap", className)}
+        onAnimationComplete={() => {
+          if (onComplete) onComplete(); 
+        }}
         {...props}
       >
         {segments.map((segment, i) => (
@@ -374,7 +378,7 @@ export function TextAnimate({
             custom={i * staggerTimings[by]}
             className={cn(
               by === "line" ? "block" : "inline-block whitespace-pre",
-              segmentClassName
+              segmentClassName,
             )}
           >
             {segment}

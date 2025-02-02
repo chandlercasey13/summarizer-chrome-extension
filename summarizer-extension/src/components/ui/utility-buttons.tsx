@@ -33,7 +33,7 @@ setTimeout(()=>{
       <TooltipProvider>
     <button
       onClick={handleCopy}
-      className="font-[Inter] bg-transparent  flex justify-center items-center h-8 w-8 z-50 text-white font-light p-2 mr-2 rounded-lg hover:bg-white/50"
+      className="font-[Inter] bg-transparent  flex justify-center items-center h-8 w-8 z-50 text-white font-light p-2 mr-2 rounded-lg hover:border-[2px] hover:border-white"
     >
       
   <Tooltip>
@@ -60,7 +60,7 @@ setTimeout(()=>{
 
     <button
     onClick={handleResetSummary}
-    className="font-[Inter] bg-transparent flex  justify-center  items-center h-8 w-8 text-white font-light z-50    rounded-lg hover:bg-white/50"> 
+    className="font-[Inter] bg-transparent flex  justify-center  items-center h-8 w-8 text-white font-light z-50    rounded-lg hover:border-[2px] hover:border-white"> 
       
       <Tooltip>
     <TooltipTrigger> 

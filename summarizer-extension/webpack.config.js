@@ -2,6 +2,9 @@ import path from 'path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 
+
+
+
 export default {
     entry: {
         background: "./src/background/background.ts",
@@ -31,6 +34,7 @@ export default {
         ],
     },
     plugins: [
+      
         new CopyPlugin({
             patterns: [{ from: "manifest.json", to: "../manifest.json" }],
         }),
