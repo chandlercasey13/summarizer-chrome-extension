@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 import { IoCrop } from "react-icons/io5";
 import { Slider } from "../components/ui/slider";
@@ -189,6 +189,18 @@ setTextAnimationComplete(false)
 
   }, [currentActiveTabId, sliderValue]);
 
+
+
+
+  const onAnimationComplete=  
+    useCallback(()=> {
+      setTextAnimationComplete(true)
+                      },[])
+                    
+  
+
+
+
   //set current active within that useeffect, IF extension is open in tab , then set state of extension opened, 
   // that will set another useeffect that then retrieve
 
@@ -371,13 +383,11 @@ setTextAnimationComplete(false)
 
               <TextAnimate className="font-[Inter]  text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-transparent" 
               once={true}
-              animation="blurInUp" by="word" duration={.1} onComplete={() =>{ 
-                if (!hasCompleted.current) {
-                  hasCompleted.current = true; // Prevent repeated updates
-                  setTextAnimationComplete(true);
-                }
-             
-              }}>
+              startOnView={true}
+              animation="blurInUp" by="word" duration={.1} onComplete={ 
+               
+             onAnimationComplete
+              }>
       {output}
     </TextAnimate>
 

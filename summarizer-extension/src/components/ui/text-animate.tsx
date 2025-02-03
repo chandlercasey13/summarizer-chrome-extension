@@ -2,7 +2,7 @@
 
 import { cn } from "../../lib/utils";
 import { AnimatePresence, motion, MotionProps, Variants } from "motion/react";
-import { ElementType } from "react";
+import { ElementType, memo } from "react";
 
 type AnimationType = "text" | "word" | "character" | "line";
 type AnimationVariant =
@@ -300,7 +300,7 @@ const defaultItemAnimationVariants: Record<
   },
 };
 
-export function TextAnimate({
+export const TextAnimate = memo(function TextAnimate({
   children,
   delay = 0,
   duration = 0.3,
@@ -367,7 +367,7 @@ export function TextAnimate({
         exit="exit"
         className={cn("whitespace-pre-wrap", className)}
         onAnimationComplete={() => {
-          if (onComplete) onComplete(); 
+          if (onComplete) onComplete();
         }}
         {...props}
       >
@@ -378,7 +378,7 @@ export function TextAnimate({
             custom={i * staggerTimings[by]}
             className={cn(
               by === "line" ? "block" : "inline-block whitespace-pre",
-              segmentClassName,
+              segmentClassName
             )}
           >
             {segment}
@@ -387,4 +387,4 @@ export function TextAnimate({
       </MotionComponent>
     </AnimatePresence>
   );
-}
+});
