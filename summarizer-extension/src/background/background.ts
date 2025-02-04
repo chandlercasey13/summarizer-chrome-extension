@@ -238,6 +238,7 @@ tabResponseCache.get(currentTab)!.set(message.length, fullText);
   if (message.type === "DELETE_TAB_IN_CACHE") {
     if (tabResponseCache.has(message.data)) {
      tabResponseCache.delete(message.data)
+     console.log(tabResponseCache)
 
 
     }

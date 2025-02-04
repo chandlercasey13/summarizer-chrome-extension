@@ -13,6 +13,7 @@ import "../styles/index.css";
 import "../styles/App.css";
 import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
+import { SlidersVertical } from "lucide-react";
 
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
   const [hasTextAnimated, setHasTextAnimated] = useState(false);
   const [textAnimationComplete, setTextAnimationComplete]=useState(false)
 
+  const [domWordCount , setDomWordCount]=useState(0)
 
 
   const hasCompleted = useRef(false);
@@ -87,7 +89,9 @@ setExtensionToggle((prev)=> !prev)
 
         //this is for telling the background what tab the extension is being opened in
       } else if (message.type === "STREAM_COMPLETE") {
+        
         setOutput(message.data);
+
 
         //when done with ai response, set cache with tab id and response
       } 
@@ -124,6 +128,8 @@ setExtensionToggle((prev)=> !prev)
         if (chrome.runtime.lastError) {
           console.error("Error:", chrome.runtime.lastError.message);
         }
+       
+        setDomWordCount(response.data)
       }
     );
   };
@@ -149,6 +155,7 @@ useEffect(()=> {
         } else {
           //ensures text only animates when the response is NOT in cache
           setHasTextAnimated(true);
+          setTextAnimationComplete(true)
       
           setOutput(response.data);
         }
@@ -159,12 +166,12 @@ useEffect(()=> {
 }, [extensionToggle])
 
   useEffect(() => {
-   
+    setTextAnimationComplete(false)
   clearTimeout(timeoutId)
-  setOutput('')
+  setOutput(``)
   
   timeoutId = setTimeout(()=> {
-setTextAnimationComplete(false)
+
 
     chrome.runtime.sendMessage(
       { type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB", data: currentActiveTabId },
@@ -348,7 +355,7 @@ setTextAnimationComplete(false)
       </motion.div>
 
       <motion.div
-        className=" scrollbar-container overflow-hidden bg-transparent pb-4  px-[1.6rem] flex flex-col justify-start items-center overflow-y-auto"
+        className=" scrollbar-container overflow-auto bg-transparent pb-4  px-[1.6rem] flex flex-col justify-start items-center overflow-y-auto"
         initial={false}
         animate={{
           minWidth: "100%",
@@ -363,7 +370,7 @@ setTextAnimationComplete(false)
       >
         {!hasTextAnimated ? (
           output ? (
-            <div className=" rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-transparent pb-4">
+            <div className=" scrollbar-container rounded-br-sm orounded-bl-sm w-full flex flex-col justify-start items-center bg-transparent  pb-4">
              
 
 
@@ -381,10 +388,10 @@ setTextAnimationComplete(false)
 
 
 
-              <TextAnimate className="font-[Inter]  text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-transparent" 
+              <TextAnimate className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent" 
               once={true}
               startOnView={true}
-              animation="blurInUp" by="word" duration={.1} onComplete={ 
+              animation="blurInUp" by="line" duration={.5} onComplete={ 
                
              onAnimationComplete
               }>
@@ -407,7 +414,7 @@ setTextAnimationComplete(false)
             </div>
           )
         ) : output ? (
-          <div className="rounded-br-sm overflow-hidden rounded-bl-sm w-full flex justify-center items-center bg-transparent pb-4">
+          <div className=" scrollbar-container rounded-br-sm  rounded-bl-sm w-full flex flex-col  justify-start items-center bg-transparent pb-4">
             <div className="font-[Inter]  text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-transparent">
               {output}
             </div>
@@ -418,9 +425,8 @@ setTextAnimationComplete(false)
           </div>
         )}
 
-      
-          <motion.div
-            className="h-2 w-full border-[1px] border-white/30 border-l-0 border-r-0 border-b-0  "
+      {textAnimationComplete && ( <motion.div
+            className="h-2 w-full border-[1px] border-white/30 border-l-0 border-r-0 border-b-0 pb-8  "
             initial={{ opacity: 0 }}
             animate={{
               opacity: textAnimationComplete? 1:0,
@@ -432,9 +438,13 @@ setTextAnimationComplete(false)
             }}
           >
             <p className=" text-center text-white/30 mt-1 font-light ">
-              This summary is 50% shorter than the original text
+            
+              This summary is {domWordCount > 0 
+  ? Math.floor((1 - ((sliderValue[0] + 100) / domWordCount)) * 100) 
+  : 0}% shorter than the original text
             </p>
-          </motion.div>
+          </motion.div>)}
+         
    
       </motion.div>
     </>
