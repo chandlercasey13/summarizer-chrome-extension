@@ -15,7 +15,7 @@ dotenv.config();
 const apiKey= process.env.GEMINI_KEY!;
 
 const genAI = new GoogleGenerativeAI(`${apiKey}`);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash",
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b",
 
  });
 
@@ -24,10 +24,9 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash",
 
  const promptAi = async function (prompt: string, length:number, res: Response) {
   const systemInstruction =
-    `Your only function is to provide a summary of everything provided in the text, 
-    which is extracted from the DOM of websites. Do not refer to the text, only refer to it as a website.
-    If there is a main point given in a large body of text, summarize it.  
-    Also do it in ${length} words.`;
+    `Your only function is to provide a markdown summary of everything provided in the text in ${length} words. 
+     Use headers only for key points, like h1 and h2. However, per summary you can only use one h1, and any number of the h2's.Do not refer to the text or call it a website.
+    If there is a main point given in a large body of text, summarize it.`
 
   try {
 
