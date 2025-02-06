@@ -14,8 +14,8 @@ import "../styles/App.css";
 import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
 import { SlidersVertical } from "lucide-react";
-
-
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 function App() {
   const [output, setOutput] = useState("");
   const [extensionToggle, setExtensionToggle] = useState(false);
@@ -156,6 +156,7 @@ useEffect(()=> {
           //ensures text only animates when the response is NOT in cache
           setHasTextAnimated(true);
           setTextAnimationComplete(true)
+          setDomWordCount(response.tabDomContentLength)
       
           setOutput(response.data);
         }
@@ -213,8 +214,9 @@ useEffect(()=> {
 
   return (
     <>
+    
       <motion.div
-        className="relative flex flex-col justify-center items-center bg-black w-full px-[1.6rem]"
+        className="relative flex flex-col justify-center items-center bg-black w-full px-[1.3rem]"
         initial={false}
         animate={{
           minHeight: animationPlayedOnce ? "15vh" : "100vh",
@@ -321,7 +323,7 @@ useEffect(()=> {
         </motion.div>
 
         <motion.div
-          className=" text-white font-extralight absolute bottom-1 px-[1.6rem] w-full flex flex-col items-center justify-center  "
+          className=" text-white font-extralight absolute bottom-1 px-[1.3rem] w-full flex flex-col items-center justify-center  "
           initial={false}
           animate={{
             opacity: animationPlayedOnce ? 1 : 0,
@@ -355,7 +357,7 @@ useEffect(()=> {
       </motion.div>
 
       <motion.div
-        className=" scrollbar-container overflow-auto bg-transparent pb-4  px-[1.6rem] flex flex-col justify-start items-center overflow-y-auto"
+        className=" scrollbar-container overflow-auto bg-transparent pb-4  px-[1.3rem] flex flex-col justify-start items-center overflow-y-auto"
         initial={false}
         animate={{
           minWidth: "100%",
@@ -388,15 +390,19 @@ useEffect(()=> {
 
 
 
-              <TextAnimate className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent" 
-              once={true}
-              startOnView={true}
-              animation="blurInUp" by="line" duration={.5} onComplete={ 
+              <ReactMarkdown className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent"
+               remarkPlugins={[remarkGfm]}
+               components={{
+                
+                 h1: ({ children }) => <h1 className="text-xl font-black mb-2 mt-2">{children}</h1>,
+                 h2: ({ children }) => <h2 className="text-base font-bold mt-4 mb-2 ">{children}</h2>,
+                 strong: ({ children }) => <p className=" text-sm font-medium mt-4 mb-1 ">{children}</p>,
                
-             onAnimationComplete
-              }>
+               }}
+              >
       {output}
-    </TextAnimate>
+      </ReactMarkdown>
+ 
 
 
 {/* 

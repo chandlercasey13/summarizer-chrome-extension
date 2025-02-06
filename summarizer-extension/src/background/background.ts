@@ -1,4 +1,5 @@
 const tabResponseCache: Map<number, Map<number, string>> = new Map();
+const tabDomContentLength : Map<number, number> = new Map();
 
 const currentTabsWithExtensionOpened: Map<number, boolean> = new Map();
 
@@ -140,8 +141,8 @@ function handleIncomingMessages(
   if (message.type === "DOM_CONTENT") {
 
    
-    const domContent = message.payload;
-    
+  const domContent = message.payload;
+  tabDomContentLength.set(currentTab, message.domLength)  
 
     
     
@@ -181,6 +182,7 @@ function handleIncomingMessages(
               }
        
 tabResponseCache.get(currentTab)!.set(message.length, fullText);
+
 
               sendResponse({ status: "Success", data: fullText });
               return;
@@ -227,6 +229,7 @@ tabResponseCache.get(currentTab)!.set(message.length, fullText);
       sendResponse({
         booleanresponse: true,
         data: tabResponseCache.get(message.data)?.get(message.length),
+        tabDomContentLength: tabDomContentLength.get(message.data)
       });
     } else {
      
