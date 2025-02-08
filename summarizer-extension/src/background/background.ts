@@ -1,9 +1,59 @@
-const tabResponseCache: Map<number, Map<number, string>> = new Map();
-const tabDomContentLength : Map<number, number> = new Map();
-
+const tabDomContentLength: Map<number, number> = new Map();
 const currentTabsWithExtensionOpened: Map<number, boolean> = new Map();
-
 let currentTab: number;
+
+const tabResponseCache: Map<number, Map<number, string>> = new Map();
+
+const initializeStorage = () => {
+  chrome.storage.local.get("tabResponseCache", (result) => {
+    
+       if (JSON.parse(result.tabResponseCache).length === 0) {
+          // Save an empty Map as the default value
+          chrome.storage.local.set({
+              tabResponseCache: JSON.stringify(Array.from(tabResponseCache.entries())),
+          });
+          console.log('r', result.tabResponseCache)
+      } else  {
+        // Convert stored JSON back into a nested Map
+        const parsedArray: [number, [number, string][]][] = JSON.parse(result.tabResponseCache);
+        parsedArray.forEach(([key, value]) => {
+            tabResponseCache.set(key, new Map(value));
+        });
+        console.log(result.tabResponseCache)
+    }
+  });
+};
+
+initializeStorage()
+
+
+
+
+
+
+
+
+
+
+chrome.runtime.onSuspend.addListener(() => {
+  console.log("Service Worker is about to be unloaded!");
+  // Perform cleanup if necessary
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // onConnect is how we know if the extension is open
 chrome.runtime.onConnect.addListener(handleConnect);
@@ -21,6 +71,11 @@ chrome.runtime.onMessage.addListener(handleIncomingMessages);
 chrome.windows.onFocusChanged.addListener(handleWindowFocusChange);
 
 chrome.action.onClicked.addListener(handleExtensionButtonClick);
+
+
+
+
+
 
 async function handleConnect(port: chrome.runtime.Port) {
   await (async () => {

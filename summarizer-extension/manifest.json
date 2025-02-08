@@ -20,7 +20,7 @@
   "background": {
     "service_worker": "js/background.js"
   },
-  "permissions": ["windows", "activeTab", "scripting", "tabs", "sidePanel"],
+  "permissions": ["windows", "activeTab", "scripting", "tabs", "sidePanel", "storage"],
  "content_scripts": [
   {
     "matches": ["https://*/*", "http://*/*"], 

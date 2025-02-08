@@ -173,7 +173,6 @@ useEffect(()=> {
   
   timeoutId = setTimeout(()=> {
 
-
     chrome.runtime.sendMessage(
       { type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB", data: currentActiveTabId },
       (response) => {
@@ -421,9 +420,19 @@ useEffect(()=> {
           )
         ) : output ? (
           <div className=" scrollbar-container rounded-br-sm  rounded-bl-sm w-full flex flex-col  justify-start items-center bg-transparent pb-4">
-            <div className="font-[Inter]  text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-4 bg-transparent">
-              {output}
-            </div>
+           
+           <ReactMarkdown className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent"
+               remarkPlugins={[remarkGfm]}
+               components={{
+                
+                 h1: ({ children }) => <h1 className="text-xl font-black mb-2 mt-2">{children}</h1>,
+                 h2: ({ children }) => <h2 className="text-base font-bold mt-4 mb-2 ">{children}</h2>,
+                 strong: ({ children }) => <p className=" text-sm font-medium mt-4 mb-1 ">{children}</p>,
+               
+               }}
+              >
+      {output}
+      </ReactMarkdown>
           </div>
         ) : (
           <div className="h-[80%] w-full  flex justify-center items-center">
@@ -431,25 +440,7 @@ useEffect(()=> {
           </div>
         )}
 
-      {textAnimationComplete && ( <motion.div
-            className="h-2 w-full border-[1px] border-white/30 border-l-0 border-r-0 border-b-0 pb-8  "
-            initial={{ opacity: 0 }}
-            animate={{
-              opacity: textAnimationComplete? 1:0,
-            }}
-            transition={{
-              delay: 0,
-              duration: 1,
-              ease: "easeInOut",
-            }}
-          >
-            <p className=" text-center text-white/30 mt-1 font-light ">
-            
-              This summary is {domWordCount > 0 
-  ? Math.floor((1 - ((sliderValue[0] + 100) / domWordCount)) * 100) 
-  : 0}% shorter than the original text
-            </p>
-          </motion.div>)}
+      
          
    
       </motion.div>
