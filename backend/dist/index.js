@@ -14,9 +14,10 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-8b",
 let lastResponse = '';
 let lastPrompt = '';
 const promptAi = async function (prompt, length, res) {
-    const systemInstruction = `Your only function is to provide a markdown summary of everything provided in the text in ${length} words. 
-     Use headers only for key points, like h1 and h2. However, per summary you can only use one h1, and any number of the h2's.Do not refer to the text or call it a website.
-    If there is a main point given in a large body of text, summarize it.`;
+    const systemInstruction = `
+    Your only function is to provide a markdown summary of everything provided in the text in ${length} words. 
+    Use headers only for key points, like h1 and h2. However, per summary you can only use one h1, and any number of the h2's.Do not refer to the text or call it a website.
+   If there is a main point given in a large body of text, summarize it.`;
     try {
         if (prompt) {
             // Update lastPrompt after validating the condition
