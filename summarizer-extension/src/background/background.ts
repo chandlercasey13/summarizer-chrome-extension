@@ -8,13 +8,13 @@ const initializeStorage = () => {
   chrome.storage.local.get("tabResponseCache", (result) => {
     
        if (JSON.parse(result.tabResponseCache).length === 0) {
-          // Save an empty Map as the default value
+         
           chrome.storage.local.set({
               tabResponseCache: JSON.stringify(Array.from(tabResponseCache.entries())),
           });
           console.log('r', result.tabResponseCache)
       } else  {
-        // Convert stored JSON back into a nested Map
+        
         const parsedArray: [number, [number, string][]][] = JSON.parse(result.tabResponseCache);
         parsedArray.forEach(([key, value]) => {
             tabResponseCache.set(key, new Map(value));
@@ -37,23 +37,8 @@ initializeStorage()
 
 chrome.runtime.onSuspend.addListener(() => {
   console.log("Service Worker is about to be unloaded!");
-  // Perform cleanup if necessary
+  
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // onConnect is how we know if the extension is open
 chrome.runtime.onConnect.addListener(handleConnect);
@@ -209,8 +194,8 @@ function handleIncomingMessages(
           
     
    
-//http://3.129.21.98/
-    fetch("http://localhost:3000", {
+
+    fetch("http://3.129.21.98/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ domContent , length: message.length+100 }),
