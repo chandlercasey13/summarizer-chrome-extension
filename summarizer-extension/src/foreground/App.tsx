@@ -3,59 +3,43 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { IoCrop } from "react-icons/io5";
 import { Slider } from "../components/ui/slider";
 import CopyButton from "../components/ui/utility-buttons";
-import { TextAnimate } from "../components/ui/text-animate";
 import { quantum } from "ldrs";
 
 quantum.register();
 
-
 import "../styles/index.css";
 import "../styles/App.css";
-import TypingAnimation from "../components/ui/typing-animation";
 import { motion } from "motion/react";
-import { SlidersVertical } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 function App() {
   const [output, setOutput] = useState("");
   const [extensionToggle, setExtensionToggle] = useState(false);
- 
+
   const [animationPlayedOnce, setAnimationPlayedOnce] = useState(false);
   const [currentActiveTabId, setCurrentActiveTabId] = useState(0);
   const [sliderValue, setSliderValue] = useState([100]); // Store the slider value
 
-  
   const [hasTextAnimated, setHasTextAnimated] = useState(false);
-  const [textAnimationComplete, setTextAnimationComplete]=useState(false)
+  const [textAnimationComplete, setTextAnimationComplete] = useState(false);
 
-  const [domWordCount , setDomWordCount]=useState(0)
-
+  const [domWordCount, setDomWordCount] = useState(0);
 
   const hasCompleted = useRef(false);
 
+  const handleResetSummary = function () {
+    setHasTextAnimated(false);
+    setOutput("");
 
+    //delete entry in cache
+    chrome.runtime.sendMessage({
+      type: "DELETE_TAB_IN_CACHE",
+      data: currentActiveTabId,
+      length: sliderValue[0],
+    });
 
-
-const handleResetSummary= function() {
-setHasTextAnimated(false)
-setOutput('')
-
-//delete entry in cache
-chrome.runtime.sendMessage(
-  { type: "DELETE_TAB_IN_CACHE", data: currentActiveTabId, length:sliderValue[0]},
- 
-);
-
-setExtensionToggle((prev)=> !prev)
-
-
-
-
-}
-
-
-
-
+    setExtensionToggle((prev) => !prev);
+  };
 
   useEffect(() => {
     //connect the sidepanel actions to the background
@@ -85,16 +69,14 @@ setExtensionToggle((prev)=> !prev)
       //when press button, toggle extension open, send the current tab back to backgroun
       if (message.type === "EXTENSION_OPENED") {
         setAnimationPlayedOnce(true);
-        setCurrentActiveTabId(message.tab)
+        setCurrentActiveTabId(message.tab);
 
         //this is for telling the background what tab the extension is being opened in
       } else if (message.type === "STREAM_COMPLETE") {
-        
         setOutput(message.data);
 
-
         //when done with ai response, set cache with tab id and response
-      } 
+      }
     };
 
     const handleTabActivated = (activeInfo: chrome.tabs.TabActiveInfo) => {
@@ -119,101 +101,82 @@ setExtensionToggle((prev)=> !prev)
 
   let timeoutId: any;
 
-
-  const sendDomWithRetries = (tabId: number, length:number, retries = 3) => {
+  const sendDomWithRetries = (tabId: number, length: number, retries = 3) => {
     chrome.tabs.sendMessage(
       tabId,
-      { type: "SEND_DOM", length:length },
+      { type: "SEND_DOM", length: length },
       (response) => {
         if (chrome.runtime.lastError) {
           console.error("Error:", chrome.runtime.lastError.message);
         }
-       
-        setDomWordCount(response.data)
+
+        setDomWordCount(response.data);
       }
     );
   };
 
-
-
-
-useEffect(()=> {
-
-
-  chrome.runtime.sendMessage(
-    { type: "IS_TAB_IN_CACHE", data: currentActiveTabId, length:sliderValue[0]},
-    (response) => {
-      
-      if (chrome.runtime.lastError) {
-        console.error("Error:", chrome.runtime.lastError.message);
-       
-      } else {
-        //if not, send the DOM and get a response
-        if (response.booleanresponse === false) {
-         
-          sendDomWithRetries(currentActiveTabId, sliderValue[0]);
-        } else {
-          //ensures text only animates when the response is NOT in cache
-          setHasTextAnimated(true);
-          setTextAnimationComplete(true)
-          setDomWordCount(response.tabDomContentLength)
-      
-          setOutput(response.data);
-        }
-      }
-    }
-  );
-
-}, [extensionToggle])
-
   useEffect(() => {
-    setTextAnimationComplete(false)
-  clearTimeout(timeoutId)
-  setOutput(``)
-  
-  timeoutId = setTimeout(()=> {
-
     chrome.runtime.sendMessage(
-      { type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB", data: currentActiveTabId },
+      {
+        type: "IS_TAB_IN_CACHE",
+        data: currentActiveTabId,
+        length: sliderValue[0],
+      },
       (response) => {
         if (chrome.runtime.lastError) {
+          console.error("Error:", chrome.runtime.lastError.message);
         } else {
+          //if not, send the DOM and get a response
           if (response.booleanresponse === false) {
-            return;
+            sendDomWithRetries(currentActiveTabId, sliderValue[0]);
           } else {
-            setExtensionToggle((prev) => !prev);
+            //ensures text only animates when the response is NOT in cache
+            setHasTextAnimated(true);
+            setTextAnimationComplete(true);
+            setDomWordCount(response.tabDomContentLength);
 
+            setOutput(response.data);
           }
         }
       }
     );
+  }, [extensionToggle]);
 
-  }, 500)
+  useEffect(() => {
+    setTextAnimationComplete(false);
+    clearTimeout(timeoutId);
+    setOutput(``);
 
-  return () => {
-    if (timeoutId.current) clearTimeout(timeoutId.current);
-  };
+    timeoutId = setTimeout(() => {
+      chrome.runtime.sendMessage(
+        { type: "IS_EXTENSION_OPEN_IN_CURRENT_TAB", data: currentActiveTabId },
+        (response) => {
+          if (chrome.runtime.lastError) {
+          } else {
+            if (response.booleanresponse === false) {
+              return;
+            } else {
+              setExtensionToggle((prev) => !prev);
+            }
+          }
+        }
+      );
+    }, 500);
 
+    return () => {
+      if (timeoutId.current) clearTimeout(timeoutId.current);
+    };
   }, [currentActiveTabId, sliderValue]);
 
+  const onAnimationComplete = useCallback(() => {
+    setTextAnimationComplete(true);
+  }, []);
 
-
-
-  const onAnimationComplete=  
-    useCallback(()=> {
-      setTextAnimationComplete(true)
-                      },[])
-                    
-  
-
-
-
-  //set current active within that useeffect, IF extension is open in tab , then set state of extension opened, 
+  //set current active within that useeffect, IF extension is open in tab , then set state of extension opened,
   // that will set another useeffect that then retrieve
 
   return (
     <>
-    
       <motion.div
         className="relative flex flex-col justify-center items-center bg-black w-full px-[1.3rem]"
         initial={false}
@@ -235,7 +198,6 @@ useEffect(()=> {
           animate={{
             scale: animationPlayedOnce ? 1 : 1,
             left: animationPlayedOnce ? -25 : 0,
-            
           }}
           transition={{
             delay: 1,
@@ -250,8 +212,7 @@ useEffect(()=> {
             animate={{
               marginBottom: animationPlayedOnce ? "0rem" : ".5rem",
               width: animationPlayedOnce ? "50%" : "auto",
-              minWidth: "4rem"
-             
+              minWidth: "4rem",
             }}
             transition={{
               delay: 1,
@@ -259,26 +220,26 @@ useEffect(()=> {
               ease: "easeInOut",
             }}
           >
-          <motion.div className=" absolute flex justify-center items-center  w-[3rem] h-[4rem] overflow-hidden"
-           initial={false}
-           animate={{
-             width: animationPlayedOnce ? "3rem" : "8rem",
-             height: animationPlayedOnce ? "4rem" : "6rem",
-             left: animationPlayedOnce ? "none" : "-3rem",
-           }}
-           transition={{
-             delay: 1,
-             duration: 1,
-             ease: "easeInOut",
-           }}>
-
-            <IoCrop className=" relative w-full h-full overflow-hidden" color="white" />
-          
+            <motion.div
+              className=" absolute flex justify-center items-center  w-[3rem] h-[4rem] overflow-hidden"
+              initial={false}
+              animate={{
+                width: animationPlayedOnce ? "3rem" : "8rem",
+                height: animationPlayedOnce ? "4rem" : "6rem",
+                left: animationPlayedOnce ? "none" : "-3rem",
+              }}
+              transition={{
+                delay: 1,
+                duration: 1,
+                ease: "easeInOut",
+              }}
+            >
+              <IoCrop
+                className=" relative w-full h-full overflow-hidden"
+                color="white"
+              />
+            </motion.div>
           </motion.div>
-          </motion.div>
-
-
-        
           <motion.div
             className=" relative flex w-1/2 h-[2.5rem]  text-md  text-white justify-end items-center overflow-hidden rounded-md p-1    "
             initial={false}
@@ -292,11 +253,11 @@ useEffect(()=> {
               ease: "easeInOut",
             }}
           >
-           <CopyButton textToCopy={output} handleResetSummary={handleResetSummary}/>
-          
-            
+            <CopyButton
+              textToCopy={output}
+              handleResetSummary={handleResetSummary}
+            />
           </motion.div>
-
         </motion.div>
 
         <motion.div
@@ -305,21 +266,12 @@ useEffect(()=> {
             margin: "0 auto",
           }}
           initial={false}
-         
           transition={{
             delay: 1,
             duration: 1,
             ease: "easeInOut",
           }}
-        >
-
-
-
-
-
-
-
-        </motion.div>
+        ></motion.div>
 
         <motion.div
           className=" text-white font-extralight absolute bottom-1 px-[1.3rem] w-full flex flex-col items-center justify-center  "
@@ -347,12 +299,10 @@ useEffect(()=> {
             defaultValue={[100]}
             max={300}
             step={100}
-            value = {sliderValue}
+            value={sliderValue}
             onValueChange={setSliderValue}
           />
         </motion.div>
-
-      
       </motion.div>
 
       <motion.div
@@ -372,39 +322,29 @@ useEffect(()=> {
         {!hasTextAnimated ? (
           output ? (
             <div className=" scrollbar-container rounded-br-sm orounded-bl-sm w-full flex flex-col justify-start items-center bg-transparent  pb-4">
-             
-
-
-             {/* "fadeIn"
-  | "blurIn"
-  | "blurInUp"
-  | "blurInDown"
-  | "slideUp"
-  | "slideDown"
-  | "slideLeft"
-  | "slideRight"
-  | "scaleUp"
-  | "scaleDown" */}
-
-
-
-
-              <ReactMarkdown className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent"
-               remarkPlugins={[remarkGfm]}
-               components={{
-                
-                 h1: ({ children }) => <h1 className="text-xl font-black mb-2 mt-2">{children}</h1>,
-                 h2: ({ children }) => <h2 className="text-base font-bold mt-4 mb-2 ">{children}</h2>,
-                 strong: ({ children }) => <p className=" text-sm font-medium mt-4 mb-1 ">{children}</p>,
-               
-               }}
+              <ReactMarkdown
+                className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent"
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }) => (
+                    <h1 className="text-xl font-black mb-2 mt-2">{children}</h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-base font-bold mt-4 mb-2 ">
+                      {children}
+                    </h2>
+                  ),
+                  strong: ({ children }) => (
+                    <p className=" text-sm font-medium mt-4 mb-1 ">
+                      {children}
+                    </p>
+                  ),
+                }}
               >
-      {output}
-      </ReactMarkdown>
- 
+                {output}
+              </ReactMarkdown>
 
-
-{/* 
+              {/* 
               <TypingAnimation
                 startOnView={false}
                 duration={5}
@@ -420,29 +360,29 @@ useEffect(()=> {
           )
         ) : output ? (
           <div className=" scrollbar-container rounded-br-sm  rounded-bl-sm w-full flex flex-col  justify-start items-center bg-transparent pb-4">
-           
-           <ReactMarkdown className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent"
-               remarkPlugins={[remarkGfm]}
-               components={{
-                
-                 h1: ({ children }) => <h1 className="text-xl font-black mb-2 mt-2">{children}</h1>,
-                 h2: ({ children }) => <h2 className="text-base font-bold mt-4 mb-2 ">{children}</h2>,
-                 strong: ({ children }) => <p className=" text-sm font-medium mt-4 mb-1 ">{children}</p>,
-               
-               }}
-              >
-      {output}
-      </ReactMarkdown>
+            <ReactMarkdown
+              className="font-[Inter] overflow-hidden text-white w-full min-h-10  text-[.85rem] font-light pt-5 pb-2 bg-transparent"
+              remarkPlugins={[remarkGfm]}
+              components={{
+                h1: ({ children }) => (
+                  <h1 className="text-xl font-black mb-2 mt-2">{children}</h1>
+                ),
+                h2: ({ children }) => (
+                  <h2 className="text-base font-bold mt-4 mb-2 ">{children}</h2>
+                ),
+                strong: ({ children }) => (
+                  <p className=" text-sm font-medium mt-4 mb-1 ">{children}</p>
+                ),
+              }}
+            >
+              {output}
+            </ReactMarkdown>
           </div>
         ) : (
           <div className="h-[80%] w-full  flex justify-center items-center">
             <l-quantum size="60" speed="1.75" color="white"></l-quantum>
           </div>
         )}
-
-      
-         
-   
       </motion.div>
     </>
   );

@@ -6,38 +6,29 @@ const tabResponseCache: Map<number, Map<number, string>> = new Map();
 
 const initializeStorage = () => {
   chrome.storage.local.get("tabResponseCache", (result) => {
-    
-       if (JSON.parse(result.tabResponseCache).length === 0) {
-         
-          chrome.storage.local.set({
-              tabResponseCache: JSON.stringify(Array.from(tabResponseCache.entries())),
-          });
-          console.log('r', result.tabResponseCache)
-      } else  {
-        
-        const parsedArray: [number, [number, string][]][] = JSON.parse(result.tabResponseCache);
-        parsedArray.forEach(([key, value]) => {
-            tabResponseCache.set(key, new Map(value));
-        });
-        console.log(result.tabResponseCache)
+    if (JSON.parse(result.tabResponseCache).length === 0) {
+      chrome.storage.local.set({
+        tabResponseCache: JSON.stringify(
+          Array.from(tabResponseCache.entries())
+        ),
+      });
+      console.log("r", result.tabResponseCache);
+    } else {
+      const parsedArray: [number, [number, string][]][] = JSON.parse(
+        result.tabResponseCache
+      );
+      parsedArray.forEach(([key, value]) => {
+        tabResponseCache.set(key, new Map(value));
+      });
+      console.log(result.tabResponseCache);
     }
   });
 };
 
-initializeStorage()
-
-
-
-
-
-
-
-
-
+initializeStorage();
 
 chrome.runtime.onSuspend.addListener(() => {
   console.log("Service Worker is about to be unloaded!");
-  
 });
 
 // onConnect is how we know if the extension is open
@@ -56,11 +47,6 @@ chrome.runtime.onMessage.addListener(handleIncomingMessages);
 chrome.windows.onFocusChanged.addListener(handleWindowFocusChange);
 
 chrome.action.onClicked.addListener(handleExtensionButtonClick);
-
-
-
-
-
 
 async function handleConnect(port: chrome.runtime.Port) {
   await (async () => {
@@ -90,7 +76,7 @@ async function handleConnect(port: chrome.runtime.Port) {
 
 // send extension open message to app.tsx
 function notifyExtensionOpened() {
-  chrome.runtime.sendMessage({ type: "EXTENSION_OPENED", tab : currentTab });
+  chrome.runtime.sendMessage({ type: "EXTENSION_OPENED", tab: currentTab });
 
   currentTabsWithExtensionOpened.set(currentTab, true);
 }
@@ -144,7 +130,10 @@ function handleWindowFocusChange(windowId: number) {
     const newActiveTabId = tabs[0].id;
 
     // check if the new active tab is in the current window
-    if (currentTabsWithExtensionOpened.has(currentTab) && newActiveTabId !== currentTab) {
+    if (
+      currentTabsWithExtensionOpened.has(currentTab) &&
+      newActiveTabId !== currentTab
+    ) {
       // close the extension
       chrome.sidePanel.setOptions({
         tabId: currentTab,
@@ -173,85 +162,69 @@ function handleIncomingMessages(
   sender: chrome.runtime.MessageSender,
   sendResponse: (response?: any) => void
 ): true | undefined {
-  
   // if we're sending a message to send the DOM content, and the tab we're requesting isn't already in our cache
 
- try{
- 
-  if (message.type === "DOM_CONTENT") {
+  try {
+    if (message.type === "DOM_CONTENT") {
+      const domContent = message.payload;
+      tabDomContentLength.set(currentTab, message.domLength);
 
-   
-  const domContent = message.payload;
-  tabDomContentLength.set(currentTab, message.domLength)  
+      // http://3.129.21.98/
 
-    
-    
-
- 
-
-
-
-          
-    
-   
-
-    fetch("http://3.129.21.98/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domContent , length: message.length+100 }),
-    })
-      .then((response) => {
-        if (!response.body) {
-          throw new Error("ReadableStream is not supported.");
-        }
-
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let fullText: string = "";
-
-        const readStream: any = () => {
-          return reader.read().then(({ done, value }) => {
-            if (done) {
-              chrome.runtime.sendMessage({
-                type: "STREAM_COMPLETE",
-                data: fullText,
-              });
-
-              if (!tabResponseCache.has(currentTab)) {
-                tabResponseCache.set(currentTab, new Map());
-              }
-       
-tabResponseCache.get(currentTab)!.set(message.length, fullText);
-
-
-              sendResponse({ status: "Success", data: fullText });
-              return;
-            }
-
-            const chunkText = decoder.decode(value, { stream: true });
-            fullText += chunkText;
-
-            return readStream();
-          });
-        };
-
-        return readStream();
+      fetch("http://localhost:3000", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domContent, length: message.length + 100 }),
       })
-      .catch((error) => {
-        console.error("Error sending DOM to backend:", error);
-        sendResponse({ status: "Error", error: error.message });
-      });
+        .then((response) => {
+          if (!response.body) {
+            throw new Error("ReadableStream is not supported.");
+          }
 
-    return true;
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let fullText: string = "";
+
+          const readStream: any = () => {
+            return reader.read().then(({ done, value }) => {
+              if (done) {
+                chrome.runtime.sendMessage({
+                  type: "STREAM_COMPLETE",
+                  data: fullText,
+                });
+
+                if (!tabResponseCache.has(currentTab)) {
+                  tabResponseCache.set(currentTab, new Map());
+                }
+
+                tabResponseCache.get(currentTab)!.set(message.length, fullText);
+
+                sendResponse({ status: "Success", data: fullText });
+                return;
+              }
+
+              const chunkText = decoder.decode(value, { stream: true });
+              fullText += chunkText;
+
+              return readStream();
+            });
+          };
+
+          return readStream();
+        })
+        .catch((error) => {
+          console.error("Error sending DOM to backend:", error);
+          sendResponse({ status: "Error", error: error.message });
+        });
+
+      return true;
+    }
+  } catch (error) {
+    console.log(error);
   }
-} catch(error) {
-  console.log(error)
-}
 
   if (message.type === "IS_EXTENSION_OPEN_IN_CURRENT_TAB") {
-  
     if (currentTabsWithExtensionOpened.has(message.data)) {
-      
       sendResponse({
         booleanresponse: true,
         data: currentTabsWithExtensionOpened.get(message.data),
@@ -262,17 +235,13 @@ tabResponseCache.get(currentTab)!.set(message.length, fullText);
   }
 
   if (message.type === "IS_TAB_IN_CACHE") {
-
- 
     if (tabResponseCache.get(message.data)?.has(message.length)) {
-    
       sendResponse({
         booleanresponse: true,
         data: tabResponseCache.get(message.data)?.get(message.length),
-        tabDomContentLength: tabDomContentLength.get(message.data)
+        tabDomContentLength: tabDomContentLength.get(message.data),
       });
     } else {
-     
       sendResponse({ booleanresponse: false, data: null });
     }
     return true;
@@ -280,20 +249,8 @@ tabResponseCache.get(currentTab)!.set(message.length, fullText);
 
   if (message.type === "DELETE_TAB_IN_CACHE") {
     if (tabResponseCache.has(message.data)) {
-     tabResponseCache.delete(message.data)
-     console.log(tabResponseCache)
-
-
+      tabResponseCache.delete(message.data);
+      console.log(tabResponseCache);
     }
-
-
-
   }
-
-  
-
-
-
-
-
 }
